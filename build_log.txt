@@ -1,0 +1,2 @@
+# Excuva Continuous Verification & Activity Log
+[2026-07-01 12:03:42 +0530] fix: add defensive null-check on character counter element
