@@ -23,3 +23,4 @@
 [2026-07-06 16:51:29 +0530] chore: improve academic extension explanation draft phrasing
 [2026-07-06 17:08:43 +0530] fix: improve countdown timer precision for otp resend
 [2026-07-06 20:47:59 +0530] style: improve graceful fallback when external llm times out
+[2026-07-07 10:21:24 +0530] feat: add defensive validation for custom recipient input
