@@ -29,3 +29,4 @@
 [2026-07-07 22:43:52 +0530] feat: improve debounce delay on live search input filter
 [2026-07-08 11:27:07 +0530] refactor: optimize dom reflows during wizard step transitions
 [2026-07-08 12:15:06 +0530] chore: add defensive fallback for missing document reference codes
+[2026-07-08 13:56:11 +0530] feat: refactor prompt template formatting in ai_engine
