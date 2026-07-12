@@ -44,3 +44,4 @@
 [2026-07-11 19:34:35 +0530] refactor: improve debounce delay on live search input filter
 [2026-07-11 21:43:19 +0530] refactor: add defensive checks for offline network state
 [2026-07-12 12:29:19 +0530] feat: optimize local storage cache serialization
+[2026-07-12 15:15:03 +0530] refactor: improve recovery flow on network timeout during generation
