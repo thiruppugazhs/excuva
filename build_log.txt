@@ -71,3 +71,4 @@
 [2026-07-19 13:52:24 +0530] style: enhance copy-to-clipboard visual checkmark transition
 [2026-07-20 11:21:44 +0530] fix: improve delivery channel constraints for whatsapp formatting
 [2026-07-20 19:19:24 +0530] fix: improve graceful fallback when external llm times out
+[2026-07-20 20:30:15 +0530] perf: enhance session verification error handling in auth manager
