@@ -70,3 +70,4 @@
 [2026-07-19 10:18:15 +0530] chore: refine orbital slot focus advancement logic on paste
 [2026-07-19 13:52:24 +0530] style: enhance copy-to-clipboard visual checkmark transition
 [2026-07-20 11:21:44 +0530] fix: improve delivery channel constraints for whatsapp formatting
+[2026-07-20 19:19:24 +0530] fix: improve graceful fallback when external llm times out
