@@ -77,3 +77,4 @@
 [2026-07-21 12:49:02 +0530] refactor: update print media query stylesheet for document generator
 [2026-07-21 13:33:16 +0530] perf: improve delivery channel constraints for whatsapp formatting
 [2026-07-21 16:08:16 +0530] chore: improve recovery flow on network timeout during generation
+[2026-07-22 14:39:59 +0530] feat: improve undo state stack management in document builder
