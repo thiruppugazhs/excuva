@@ -81,3 +81,4 @@
 [2026-07-22 16:29:42 +0530] feat: refactor query parameter handling in history filter
 [2026-07-22 18:11:42 +0530] refactor: refine recipient salutation profiles for academic channels
 [2026-07-22 19:30:54 +0530] perf: improve delivery channel constraints for whatsapp formatting
+[2026-07-22 22:02:22 +0530] fix: tune believability scoring calculation heuristics
