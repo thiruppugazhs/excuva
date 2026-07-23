@@ -83,3 +83,4 @@
 [2026-07-22 19:30:54 +0530] perf: improve delivery channel constraints for whatsapp formatting
 [2026-07-22 22:02:22 +0530] fix: tune believability scoring calculation heuristics
 [2026-07-23 11:25:53 +0530] chore: improve responsive padding across mobile wizard steps
+[2026-07-23 15:11:26 +0530] chore: optimize asset preloading headers for logo and app icons
