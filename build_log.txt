@@ -85,3 +85,4 @@
 [2026-07-23 11:25:53 +0530] chore: improve responsive padding across mobile wizard steps
 [2026-07-23 15:11:26 +0530] chore: optimize asset preloading headers for logo and app icons
 [2026-07-23 16:50:47 +0530] perf: refine responsive grid break points for tablet screens
+[2026-07-24 12:38:18 +0530] perf: improve profile photo preview rendering and aspect ratio
