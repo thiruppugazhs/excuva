@@ -92,3 +92,4 @@
 [2026-07-25 09:06:45 +0530] feat: improve keyboard accessibility and tabindex navigation
 [2026-07-25 17:48:44 +0530] refactor: refine college portal formatting template for course codes
 [2026-07-26 14:18:08 +0530] perf: update toast notification dismissal timings
+[2026-07-26 18:15:49 +0530] perf: update css transition duration on radio selection cards
