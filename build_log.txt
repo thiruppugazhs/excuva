@@ -102,3 +102,4 @@
 [2026-07-28 09:47:53 +0530] feat: improve recovery flow on network timeout during generation
 [2026-07-28 11:00:10 +0530] chore: improve undo state stack management in document builder
 [2026-07-28 14:10:33 +0530] style: update css transition duration on radio selection cards
+[2026-07-28 15:46:18 +0530] style: optimize dom reflows during wizard step transitions
