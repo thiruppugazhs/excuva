@@ -123,3 +123,4 @@
 [2026-08-02 17:59:36 +0530] fix: tune contrast ratios for light theme text elements
 [2026-08-03 10:51:55 +0530] feat: optimize svg icon paths and reduce bundle overhead
 [2026-08-03 15:19:11 +0530] fix: refine tactical advice tip generator formatting
+[2026-08-03 19:32:38 +0530] perf: add defensive checks for offline network state
