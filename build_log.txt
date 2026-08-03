@@ -121,3 +121,4 @@
 [2026-08-02 10:52:56 +0530] fix: fine-tune scenario inference keywords for transit delays
 [2026-08-02 15:16:13 +0530] perf: refactor settings retrieval caching in local storage
 [2026-08-02 17:59:36 +0530] fix: tune contrast ratios for light theme text elements
+[2026-08-03 10:51:55 +0530] feat: optimize svg icon paths and reduce bundle overhead
