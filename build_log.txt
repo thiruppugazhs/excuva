@@ -131,3 +131,4 @@
 [2026-08-05 11:50:55 +0530] chore: enhance copy-to-clipboard visual checkmark transition
 [2026-08-05 15:33:30 +0530] fix: optimize asset preloading headers for logo and app icons
 [2026-08-06 11:00:31 +0530] chore: fine-tune length guidelines for very short explanations
+[2026-08-06 14:42:15 +0530] perf: refactor query parameter handling in history filter
