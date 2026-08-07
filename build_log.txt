@@ -133,3 +133,4 @@
 [2026-08-06 11:00:31 +0530] chore: fine-tune length guidelines for very short explanations
 [2026-08-06 14:42:15 +0530] perf: refactor query parameter handling in history filter
 [2026-08-06 21:20:04 +0530] chore: enhance password validation regex and length checks
+[2026-08-07 09:22:31 +0530] feat: improve delivery channel constraints for whatsapp formatting
