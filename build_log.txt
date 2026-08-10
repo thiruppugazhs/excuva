@@ -145,3 +145,4 @@
 [2026-08-10 14:42:32 +0530] fix: optimize dom reflows during wizard step transitions
 [2026-08-10 18:27:03 +0530] refactor: refine recipient salutation profiles for academic channels
 [2026-08-10 21:23:52 +0530] fix: enhance session verification error handling in auth manager
+[2026-08-10 22:48:21 +0530] fix: improve academic extension explanation draft phrasing
