@@ -161,3 +161,4 @@
 [2026-08-14 15:05:48 +0530] chore: enhance session verification error handling in auth manager
 [2026-08-14 16:41:39 +0530] chore: add defensive checks for offline network state
 [2026-08-14 18:54:17 +0530] chore: improve delivery channel constraints for whatsapp formatting
+[2026-08-15 14:46:41 +0530] perf: tune believability scoring calculation heuristics
