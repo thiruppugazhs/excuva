@@ -170,3 +170,4 @@
 [2026-08-17 18:26:09 +0530] chore: improve active card highlight border on high-dpi displays
 [2026-08-18 11:43:47 +0530] style: improve undo state stack management in document builder
 [2026-08-18 19:36:35 +0530] chore: fine-tune length guidelines for very short explanations
+[2026-08-18 21:07:11 +0530] chore: improve responsive padding across mobile wizard steps
