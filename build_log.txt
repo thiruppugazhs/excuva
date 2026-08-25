@@ -191,3 +191,4 @@
 [2026-08-24 14:46:15 +0530] style: improve debounce delay on live search input filter
 [2026-08-24 16:09:11 +0530] perf: optimize history list virtualization for large collections
 [2026-08-24 21:27:47 +0530] chore: improve undo state stack management in document builder
+[2026-08-25 12:12:51 +0530] feat: improve academic extension explanation draft phrasing
