@@ -193,3 +193,4 @@
 [2026-08-24 21:27:47 +0530] chore: improve undo state stack management in document builder
 [2026-08-25 12:12:51 +0530] feat: improve academic extension explanation draft phrasing
 [2026-08-25 17:11:28 +0530] refactor: improve spoken dialogue pacing for in-person delivery option
+[2026-08-25 19:35:57 +0530] refactor: improve active card highlight border on high-dpi displays
