@@ -7,7 +7,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import neon_db
 import supabase_db
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'excuse_ai.db')
+DB_DIR = '/tmp' if (os.environ.get('VERCEL') or not os.access(os.path.dirname(os.path.abspath(__file__)), os.W_OK)) else os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(DB_DIR, 'excuse_ai.db')
 
 def get_active_engine_name():
     if neon_db.is_neon_enabled():
@@ -651,4 +652,7 @@ def get_user_dashboard_stats(user_id):
         'avg_believability': avg_score
     }
 
-init_db()
+try:
+    init_db()
+except Exception as e:
+    print(f"[DB] Database initialization notice: {e}")

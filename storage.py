@@ -11,8 +11,11 @@ except ImportError:
     boto3 = None
     boto3_available = False
 
-LOCAL_STORAGE_DIR = os.path.join(os.path.dirname(__file__), 'uploads')
-os.makedirs(LOCAL_STORAGE_DIR, exist_ok=True)
+LOCAL_STORAGE_DIR = os.path.join('/tmp', 'uploads') if (os.environ.get('VERCEL') or not os.access(os.path.dirname(os.path.abspath(__file__)), os.W_OK)) else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+try:
+    os.makedirs(LOCAL_STORAGE_DIR, exist_ok=True)
+except Exception:
+    pass
 
 def is_s3_storage_enabled():
     return bool(
