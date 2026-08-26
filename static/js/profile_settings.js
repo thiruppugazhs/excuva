@@ -9,7 +9,8 @@ export class ProfileSettingsManager {
 
   init() {
     this.bindEvents();
-    this.applyTheme(localStorage.getItem('excuse_ai_theme') || 'light');
+    const savedTheme = localStorage.getItem('excuse_ai_theme');
+    this.applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
   }
 
   bindEvents() {
@@ -68,9 +69,8 @@ export class ProfileSettingsManager {
   }
 
   applyTheme(theme) {
-    if (theme === 'system') {
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      theme = prefersDark ? 'dark' : 'light';
+    if (!theme || theme === 'system') {
+      theme = 'light';
     }
 
     if (theme === 'dark') {
@@ -91,14 +91,12 @@ export class ProfileSettingsManager {
       const toneSelect = document.getElementById('setting-default-tone');
       const lengthSelect = document.getElementById('setting-default-length');
       const deliverySelect = document.getElementById('setting-default-delivery');
-      const apiKeyInput = document.getElementById('setting-api-key');
 
       if (toneSelect && this.settings.default_tone) toneSelect.value = this.settings.default_tone;
       if (lengthSelect && this.settings.default_length) lengthSelect.value = this.settings.default_length;
       if (deliverySelect && this.settings.default_delivery) deliverySelect.value = this.settings.default_delivery;
-      if (apiKeyInput && this.settings.masked_api_key) apiKeyInput.placeholder = `Configured: ${this.settings.masked_api_key}`;
 
-      const currentTheme = this.settings.theme_preference || localStorage.getItem('excuse_ai_theme') || 'light';
+      const currentTheme = this.settings.theme_preference === 'dark' ? 'dark' : 'light';
       this.applyTheme(currentTheme);
       document.querySelectorAll('.theme-option-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === currentTheme);
