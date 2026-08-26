@@ -1,4 +1,4 @@
-# EXCUSE.AI — AI-Powered Intelligent Excuse Generator
+# EXCUVA — AI-Powered Intelligent Excuse Generator
 
 Turn any difficult situation into a clear, natural, and context-aware explanation.
 
