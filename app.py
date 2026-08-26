@@ -31,7 +31,7 @@ def send_email_via_resend(to_email, subject, html_content):
                 "Content-Type": "application/json"
             },
             json={
-                "from": "EXCUSE.AI <onboarding@resend.dev>",
+                "from": "Excuva <onboarding@resend.dev>",
                 "to": [to_email],
                 "subject": subject,
                 "html": html_content
@@ -193,10 +193,10 @@ def forgot_password():
         reset_url = request.host_url.rstrip('/') + f"/#reset-password?token={reset_token}"
         email_html = f"""
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px; background: #faf8f5; border: 1px solid #e7e0d8; border-radius: 16px; color: #292524;">
-          <h2 style="color: #78350f; margin: 0 0 16px; font-size: 22px;">EXCUSE.AI</h2>
+          <h2 style="color: #78350f; margin: 0 0 16px; font-size: 22px;">Excuva</h2>
           <h3 style="color: #1c1917; margin: 0 0 12px; font-size: 18px;">Password Reset Request</h3>
           <p style="color: #57534e; line-height: 1.6; font-size: 14px;">Hello {user.get('name', 'User')},</p>
-          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">We received a request to reset the password for your EXCUSE.AI account. Click the button below to choose a new password:</p>
+          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">We received a request to reset the password for your Excuva account. Click the button below to choose a new password:</p>
           <div style="text-align: center; margin: 28px 0;">
             <a href="{reset_url}" style="background-color: #92400e; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-block;">Reset Password</a>
           </div>
@@ -204,7 +204,7 @@ def forgot_password():
           <p style="color: #a8a29e; font-size: 11px; margin-top: 24px; border-top: 1px solid #e7e0d8; padding-top: 12px;">If you did not request this change, you can safely ignore this email.</p>
         </div>
         """
-        send_email_via_resend(email, "Reset Your EXCUSE.AI Password", email_html)
+        send_email_via_resend(email, "Reset Your Excuva Password", email_html)
 
     # Security best practice: Consistent response whether account exists or not
     return jsonify({
@@ -680,5 +680,5 @@ def change_password():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print(f"Starting EXCUSE.AI application on http://127.0.0.1:{port}")
+    print(f"Starting Excuva application on http://127.0.0.1:{port}")
     app.run(host='0.0.0.0', port=port, debug=True)

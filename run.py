@@ -11,7 +11,7 @@ def main():
 
     app_path = os.path.join(base_dir, 'app.py')
     print("==========================================================")
-    print("  EXCUSE.AI — AI-Powered Intelligent Excuse Generator")
+    print("  Excuva — Intelligent Contextual Explanation Platform")
     print("  Running on: http://127.0.0.1:5000")
     print("==========================================================")
     

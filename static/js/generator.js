@@ -709,9 +709,9 @@ export class GeneratorManager {
     if (saveLabel) saveLabel.textContent = isFavorite ? 'Saved' : 'Save';
     if (starIcon) {
       if (isFavorite) {
-        starIcon.className = 'w-4 h-4 text-amber-400 fill-current';
+        starIcon.setAttribute('class', 'w-4 h-4 text-amber-500 fill-current');
       } else {
-        starIcon.className = 'w-4 h-4 text-slate-400 fill-current';
+        starIcon.setAttribute('class', 'w-4 h-4 text-stone-400 fill-current');
       }
     }
   }
