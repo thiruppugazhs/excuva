@@ -1,4 +1,4 @@
-// profile_settings.js - User Profile, Dashboard Stats, Defaults & Privacy Controls
+// profile_settings.js - User Profile, Dashboard Stats, Defaults, Photo Upload & Privacy Controls
 import { api, showToast } from './api.js';
 import { auth } from './auth.js';
 
@@ -9,7 +9,7 @@ export class ProfileSettingsManager {
 
   init() {
     this.bindEvents();
-    this.applyTheme(localStorage.getItem('excuse_ai_theme') || 'dark');
+    this.applyTheme(localStorage.getItem('excuse_ai_theme') || 'light');
   }
 
   bindEvents() {
@@ -33,6 +33,14 @@ export class ProfileSettingsManager {
     const saveProfileBtn = document.getElementById('btn-save-profile');
     if (saveProfileBtn) {
       saveProfileBtn.addEventListener('click', () => this.handleSaveProfile());
+    }
+
+    // Avatar upload trigger
+    const uploadTriggerBtn = document.getElementById('btn-trigger-upload-avatar');
+    const avatarFileInput = document.getElementById('profile-avatar-file');
+    if (uploadTriggerBtn && avatarFileInput) {
+      uploadTriggerBtn.addEventListener('click', () => avatarFileInput.click());
+      avatarFileInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
     }
 
     // Change password button
@@ -60,14 +68,12 @@ export class ProfileSettingsManager {
       theme = prefersDark ? 'dark' : 'light';
     }
 
-    if (theme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-      document.body.classList.remove('bg-slate-950', 'text-slate-100');
-      document.body.classList.add('bg-slate-50', 'text-slate-900');
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.classList.remove('bg-[#fbf9f5]', 'text-stone-900');
     } else {
       document.documentElement.removeAttribute('data-theme');
-      document.body.classList.remove('bg-slate-50', 'text-slate-900');
-      document.body.classList.add('bg-slate-950', 'text-slate-100');
+      document.body.classList.add('bg-[#fbf9f5]', 'text-stone-900');
     }
     localStorage.setItem('excuse_ai_theme', theme);
   }
@@ -87,7 +93,7 @@ export class ProfileSettingsManager {
       if (deliverySelect && this.settings.default_delivery) deliverySelect.value = this.settings.default_delivery;
       if (apiKeyInput && this.settings.masked_api_key) apiKeyInput.placeholder = `Configured: ${this.settings.masked_api_key}`;
 
-      const currentTheme = this.settings.theme_preference || localStorage.getItem('excuse_ai_theme') || 'dark';
+      const currentTheme = this.settings.theme_preference || localStorage.getItem('excuse_ai_theme') || 'light';
       this.applyTheme(currentTheme);
       document.querySelectorAll('.theme-option-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === currentTheme);
@@ -103,18 +109,17 @@ export class ProfileSettingsManager {
 
     const nameInput = document.getElementById('profile-name');
     const emailInput = document.getElementById('profile-email');
-    const avatarInput = document.getElementById('profile-avatar-url');
     const avatarImg = document.getElementById('profile-avatar-display');
     const nameDisplay = document.getElementById('profile-name-display');
     const memberSinceEl = document.getElementById('profile-member-since');
 
     if (nameInput) nameInput.value = user.name || '';
     if (emailInput) emailInput.value = user.email || '';
-    if (avatarInput) avatarInput.value = user.avatar_url || '';
     if (nameDisplay) nameDisplay.textContent = user.name || 'User';
     
+    const avatarSrc = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=854d0e&color=ffffff`;
     if (avatarImg) {
-      avatarImg.src = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=1e293b&color=94a3b8`;
+      avatarImg.src = avatarSrc;
     }
 
     if (memberSinceEl) {
@@ -160,17 +165,17 @@ export class ProfileSettingsManager {
         recentList.innerHTML = '';
         const recents = data.recent_excuses || [];
         if (recents.length === 0) {
-          recentList.innerHTML = '<p class="text-sm text-slate-500 py-6 text-center">No explanations generated yet. Click "Generate Excuse" above to start!</p>';
+          recentList.innerHTML = '<p class="text-sm text-stone-500 py-6 text-center">No explanations generated yet. Click "Generate Excuse" above to start!</p>';
         } else {
           recents.forEach(item => {
             const row = document.createElement('div');
-            row.className = 'flex items-center justify-between p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-sm hover:border-slate-700 transition-colors';
+            row.className = 'flex items-center justify-between p-3.5 rounded-xl bg-white border border-stone-200 text-sm hover:border-amber-700/40 transition-colors shadow-sm';
             row.innerHTML = `
               <div class="truncate mr-4">
-                <p class="font-medium text-slate-200 truncate">${item.scenario}</p>
-                <p class="text-xs text-slate-400 mt-0.5">To: ${item.recipient} • ${new Date(item.created_at).toLocaleDateString()}</p>
+                <p class="font-medium text-stone-900 truncate">${item.scenario}</p>
+                <p class="text-xs text-stone-500 mt-0.5">To: ${item.recipient} • ${new Date(item.created_at).toLocaleDateString()}</p>
               </div>
-              <span class="px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800 shrink-0 font-mono">
+              <span class="px-2.5 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 font-mono">
                 ${item.believability_score}% Believable
               </span>
             `;
@@ -179,6 +184,57 @@ export class ProfileSettingsManager {
         }
       }
     } catch (err) {}
+  }
+
+  async handleAvatarUpload(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file', 'error');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Image size must be less than 5MB', 'error');
+      return;
+    }
+
+    const filenameLabel = document.getElementById('profile-upload-filename');
+    if (filenameLabel) filenameLabel.textContent = file.name;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64Data = e.target.result;
+      
+      // Update preview immediately
+      const avatarImg = document.getElementById('profile-avatar-display');
+      if (avatarImg) avatarImg.src = base64Data;
+      document.querySelectorAll('.current-user-avatar').forEach(img => img.src = base64Data);
+
+      try {
+        const formData = new FormData();
+        formData.append('avatar_file', file);
+        
+        const token = localStorage.getItem('excuse_ai_token');
+        const res = await fetch('/api/user/avatar', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
+        
+        auth.currentUser = data.user;
+        showToast('Profile photo updated successfully', 'success');
+      } catch (err) {
+        showToast(err.message || 'Failed to upload photo', 'error');
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   async handleSavePreferences() {
@@ -191,7 +247,7 @@ export class ProfileSettingsManager {
     const default_tone = toneSelect ? toneSelect.value : 'Professional';
     const default_length = lengthSelect ? lengthSelect.value : 'Medium';
     const default_delivery = deliverySelect ? deliverySelect.value : 'WhatsApp';
-    const theme_preference = activeThemeBtn ? activeThemeBtn.dataset.theme : 'dark';
+    const theme_preference = activeThemeBtn ? activeThemeBtn.dataset.theme : 'light';
     const custom_api_key = apiKeyInput && apiKeyInput.value.trim() ? apiKeyInput.value.trim() : undefined;
 
     try {
@@ -212,9 +268,7 @@ export class ProfileSettingsManager {
 
   async handleSaveProfile() {
     const nameInput = document.getElementById('profile-name');
-    const avatarInput = document.getElementById('profile-avatar-url');
     const name = nameInput ? nameInput.value.trim() : '';
-    const avatar_url = avatarInput ? avatarInput.value.trim() : undefined;
 
     if (!name) {
       showToast('Name cannot be empty', 'error');
@@ -222,7 +276,7 @@ export class ProfileSettingsManager {
     }
 
     try {
-      const data = await api.post('/user/profile', { name, avatar_url });
+      const data = await api.post('/user/profile', { name });
       auth.currentUser = data.user;
       showToast('Profile updated successfully', 'success');
       this.loadProfile();

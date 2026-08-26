@@ -8,6 +8,8 @@ load_dotenv()
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+import requests
+import base64
 import database as db
 import ai_engine
 import storage
@@ -15,6 +17,36 @@ import storage
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'static'), static_url_path='')
 CORS(app)
+
+def send_email_via_resend(to_email, subject, html_content):
+    resend_key = os.environ.get('RESEND_API_KEY')
+    if not resend_key:
+        print("[Resend] No RESEND_API_KEY set, skipping email dispatch.")
+        return False
+    try:
+        resp = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {resend_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "from": "EXCUSE.AI <onboarding@resend.dev>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content
+            },
+            timeout=10
+        )
+        if resp.status_code in [200, 201]:
+            print(f"[Resend] Email successfully sent to {to_email}")
+            return True
+        else:
+            print(f"[Resend] Email dispatch error: {resp.status_code} - {resp.text}")
+            return False
+    except Exception as e:
+        print(f"[Resend] Email dispatch exception: {e}")
+        return False
 
 def get_auth_user():
     auth_header = request.headers.get('Authorization', '')
@@ -158,6 +190,21 @@ def forgot_password():
     reset_token = None
     if user:
         reset_token = db.create_password_reset_token(user['id'])
+        reset_url = request.host_url.rstrip('/') + f"/#reset-password?token={reset_token}"
+        email_html = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px; background: #faf8f5; border: 1px solid #e7e0d8; border-radius: 16px; color: #292524;">
+          <h2 style="color: #78350f; margin: 0 0 16px; font-size: 22px;">EXCUSE.AI</h2>
+          <h3 style="color: #1c1917; margin: 0 0 12px; font-size: 18px;">Password Reset Request</h3>
+          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">Hello {user.get('name', 'User')},</p>
+          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">We received a request to reset the password for your EXCUSE.AI account. Click the button below to choose a new password:</p>
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="{reset_url}" style="background-color: #92400e; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-block;">Reset Password</a>
+          </div>
+          <p style="color: #78716c; font-size: 12px; line-height: 1.5;">If the button above does not work, copy and paste this link into your browser:<br><a href="{reset_url}" style="color: #b45309;">{reset_url}</a></p>
+          <p style="color: #a8a29e; font-size: 11px; margin-top: 24px; border-top: 1px solid #e7e0d8; padding-top: 12px;">If you did not request this change, you can safely ignore this email.</p>
+        </div>
+        """
+        send_email_via_resend(email, "Reset Your EXCUSE.AI Password", email_html)
 
     # Security best practice: Consistent response whether account exists or not
     return jsonify({
@@ -524,6 +571,30 @@ def handle_profile():
     avatar_url = data.get('avatar_url')
     updated = db.update_user_profile(user['id'], name, avatar_url)
     return jsonify({'message': 'Profile updated.', 'user': updated})
+
+@app.route('/api/user/avatar', methods=['POST'])
+def upload_avatar():
+    user = get_auth_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    avatar_data = None
+    if 'avatar_file' in request.files:
+        file = request.files['avatar_file']
+        if file and file.filename:
+            file_bytes = file.read()
+            mime = file.content_type or 'image/jpeg'
+            b64_str = base64.b64encode(file_bytes).decode('utf-8')
+            avatar_data = f"data:{mime};base64,{b64_str}"
+    else:
+        data = request.get_json() or {}
+        avatar_data = data.get('avatar_data') or data.get('avatar_url')
+
+    if not avatar_data:
+        return jsonify({'error': 'Please select an image file to upload.'}), 400
+
+    updated = db.update_user_profile(user['id'], user['name'], avatar_data)
+    return jsonify({'message': 'Avatar updated successfully.', 'user': updated})
 
 @app.route('/api/user/history', methods=['DELETE'])
 def clear_user_history():

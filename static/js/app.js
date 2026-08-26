@@ -225,37 +225,51 @@ class AppRouter {
       });
     }
 
-    // Google OAuth simulation & buttons
+    // Google OAuth modal & buttons
     document.querySelectorAll('.btn-google-auth').forEach(btn => {
       btn.addEventListener('click', () => {
         const modal = document.getElementById('google-account-modal');
         if (modal) {
           modal.classList.remove('hidden');
         } else {
-          // Direct fallback
           auth.loginWithGoogle().then(() => this.navigate('dashboard'));
         }
       });
     });
 
-    // Google Account Picker items in modal
-    document.querySelectorAll('.google-account-option').forEach(item => {
-      item.addEventListener('click', async (e) => {
-        const name = e.currentTarget.dataset.name;
-        const email = e.currentTarget.dataset.email;
-        const avatar_url = e.currentTarget.dataset.avatar;
-
+    // Google Direct Auth Form inside modal
+    const googleAuthForm = document.getElementById('form-google-direct-auth');
+    if (googleAuthForm) {
+      googleAuthForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('google-auth-name').value.trim();
+        const email = document.getElementById('google-auth-email').value.trim();
         const modal = document.getElementById('google-account-modal');
         if (modal) modal.classList.add('hidden');
 
         try {
-          await auth.loginWithGoogle({ name, email, avatar_url });
+          await auth.loginWithGoogle({ name, email });
           this.navigate('dashboard');
         } catch (err) {
           showToast('Google sign-in failed', 'error');
         }
       });
-    });
+    }
+
+    // Direct Google Quick Connect
+    const btnGoogleQuick = document.getElementById('btn-google-quick-connect');
+    if (btnGoogleQuick) {
+      btnGoogleQuick.addEventListener('click', async () => {
+        const modal = document.getElementById('google-account-modal');
+        if (modal) modal.classList.add('hidden');
+        try {
+          await auth.loginWithGoogle();
+          this.navigate('dashboard');
+        } catch (err) {
+          showToast('Google sign-in failed', 'error');
+        }
+      });
+    }
 
     // Forgot Password Form
     const forgotForm = document.getElementById('form-forgot-password');

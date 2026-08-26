@@ -171,40 +171,40 @@ export class HistoryManager {
 
   createItemCard(item) {
     const card = document.createElement('div');
-    card.className = 'p-4 sm:p-5 rounded-xl border border-slate-800 bg-slate-900/70 hover:border-slate-700 transition-all space-y-3';
+    card.className = 'p-5 sm:p-6 rounded-2xl border border-stone-200 bg-white hover:border-amber-700/40 shadow-xs transition-all space-y-3';
     const relDate = this.formatRelativeDate(item.created_at);
 
     if (item.itemType === 'excuse') {
       card.innerHTML = `
         <div class="flex items-start justify-between gap-4">
           <div>
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-950 text-blue-300 border border-blue-800">Explanation</span>
-              <span class="text-xs text-slate-400">To: <strong class="text-slate-200">${item.recipient}</strong></span>
-              <span class="text-xs text-slate-400">• Tone: <strong class="text-slate-200">${item.tone}</strong></span>
-              <span class="text-xs text-slate-400">• ${relDate}</span>
+            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">Explanation</span>
+              <span class="text-xs text-stone-600">To: <strong class="text-stone-900">${item.recipient}</strong></span>
+              <span class="text-xs text-stone-600">• Tone: <strong class="text-stone-900">${item.tone}</strong></span>
+              <span class="text-xs text-stone-500">• ${relDate}</span>
             </div>
-            <h4 class="text-sm sm:text-base font-bold text-white">${item.scenario}</h4>
+            <h4 class="text-sm sm:text-base font-bold text-stone-900">${item.scenario}</h4>
           </div>
 
-          <button type="button" class="btn-fav-history p-1.5 rounded text-slate-400 hover:text-amber-400 ${item.is_favorite ? 'text-amber-400' : ''}" data-id="${item.id}" data-type="excuse" title="Toggle Favorite">
+          <button type="button" class="btn-fav-history p-1.5 rounded-lg text-stone-400 hover:text-amber-600 ${item.is_favorite ? 'text-amber-500' : ''}" data-id="${item.id}" data-type="excuse" title="Toggle Favorite">
             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
             </svg>
           </button>
         </div>
 
-        <div class="p-3 rounded-lg border border-slate-800 bg-slate-950/80 font-mono text-xs sm:text-sm text-slate-300 whitespace-pre-line leading-relaxed select-all">
+        <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50 font-mono text-xs sm:text-sm text-stone-800 whitespace-pre-line leading-relaxed select-all">
           ${item.primary_text}
         </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-slate-800/80 text-xs text-slate-400">
-          <span class="font-mono text-[11px] text-emerald-400">${item.believability_score || 96}% Believable</span>
+        <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs text-stone-500">
+          <span class="font-mono text-[11px] font-bold text-emerald-700">${item.believability_score || 96}% Believable</span>
           <div class="flex items-center gap-2">
-            <button type="button" class="btn-copy-history btn-ghost px-2.5 py-1 text-xs" data-text="${encodeURIComponent(item.primary_text)}">
+            <button type="button" class="btn-copy-history btn-ghost px-2.5 py-1 text-xs font-semibold text-stone-700 hover:text-stone-900" data-text="${encodeURIComponent(item.primary_text)}">
               Copy ✓
             </button>
-            <button type="button" class="btn-delete-history btn-ghost px-2.5 py-1 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/30" data-id="${item.id}" data-type="excuse">
+            <button type="button" class="btn-delete-history btn-ghost px-2.5 py-1 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-50" data-id="${item.id}" data-type="excuse">
               Delete
             </button>
           </div>
@@ -214,32 +214,32 @@ export class HistoryManager {
       card.innerHTML = `
         <div class="flex items-start justify-between gap-4">
           <div>
-            <div class="flex flex-wrap items-center gap-2 mb-1">
-              <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800">Supporting Document</span>
-              <span class="text-xs text-slate-400">Recipient: <strong class="text-slate-200">${item.recipient}</strong></span>
-              <span class="text-xs text-slate-400">• ${relDate}</span>
+            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">Supporting Document</span>
+              <span class="text-xs text-stone-600">Recipient: <strong class="text-stone-900">${item.recipient}</strong></span>
+              <span class="text-xs text-stone-500">• ${relDate}</span>
             </div>
-            <h4 class="text-sm sm:text-base font-bold text-white">${item.title}</h4>
+            <h4 class="text-sm sm:text-base font-bold text-stone-900">${item.title}</h4>
           </div>
 
-          <button type="button" class="btn-fav-history p-1.5 rounded text-slate-400 hover:text-amber-400 ${item.is_favorite ? 'text-amber-400' : ''}" data-id="${item.id}" data-type="document" title="Toggle Favorite">
+          <button type="button" class="btn-fav-history p-1.5 rounded-lg text-stone-400 hover:text-amber-600 ${item.is_favorite ? 'text-amber-500' : ''}" data-id="${item.id}" data-type="document" title="Toggle Favorite">
             <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
             </svg>
           </button>
         </div>
 
-        <div class="p-3 rounded-lg border border-slate-800 bg-slate-950/80 font-mono text-xs text-slate-300">
+        <div class="p-3.5 rounded-xl border border-stone-200 bg-stone-50 font-mono text-xs text-stone-700">
           <p><strong>Document Type:</strong> ${item.doc_type} | <strong>Date of Record:</strong> ${item.issue_date}</p>
         </div>
 
-        <div class="flex items-center justify-between pt-1 border-t border-slate-800/80 text-xs text-slate-400">
-          <span class="text-slate-400">Official draft</span>
+        <div class="flex items-center justify-between pt-2 border-t border-stone-200 text-xs text-stone-500">
+          <span class="text-stone-500">Formal Draft</span>
           <div class="flex items-center gap-2">
-            <button type="button" class="btn-view-doc-history btn-ghost px-2.5 py-1 text-xs text-blue-400 hover:text-blue-300" data-id="${item.id}">
+            <button type="button" class="btn-view-doc-history btn-ghost px-2.5 py-1 text-xs text-amber-800 hover:text-amber-950 font-bold" data-id="${item.id}">
               Open in Editor →
             </button>
-            <button type="button" class="btn-delete-history btn-ghost px-2.5 py-1 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-950/30" data-id="${item.id}" data-type="document">
+            <button type="button" class="btn-delete-history btn-ghost px-2.5 py-1 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-50" data-id="${item.id}" data-type="document">
               Delete
             </button>
           </div>
