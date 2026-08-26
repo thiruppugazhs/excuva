@@ -345,11 +345,45 @@ code, pre, .font-mono {
    Responsive Adaptations (Mobile, Tablet, Laptop)
    ========================================================================== */
 
+/* Strict visibility controls */
+#app-sidebar.hidden {
+  display: none !important;
+}
+
+#sidebar-backdrop.hidden {
+  display: none !important;
+}
+
+/* Mobile & Tablet Devices (< 1024px) */
+@media (max-width: 1023px) {
+  #app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+  }
+
+  #app-sidebar.mobile-open {
+    transform: translateX(0) !important;
+    display: block !important;
+  }
+
+  .document-sheet {
+    padding: 1.5rem;
+    font-size: 0.875rem;
+  }
+}
+
 /* Mobile Handsets (< 640px) */
 @media (max-width: 639px) {
   .document-sheet {
     padding: 1.25rem;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
   }
   
   #formal-doc-canvas {
@@ -374,16 +408,10 @@ code, pre, .font-mono {
   }
 }
 
-/* Tablets (640px to 1023px) */
-@media (min-width: 640px) and (max-width: 1023px) {
-  .document-sheet {
-    padding: 2rem;
-  }
-}
-
-/* High-resolution Laptops & Desktops (>= 1024px) */
+/* Laptops & Large Desktops (>= 1024px) */
 @media (min-width: 1024px) {
   #app-sidebar {
-    display: block !important;
+    position: static;
+    transform: none !important;
   }
 }

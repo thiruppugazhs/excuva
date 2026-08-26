@@ -96,18 +96,51 @@ class AppRouter {
     } else if (viewName === 'documents' && params.context) {
       documents.setContext(params.context);
     }
+    // Close mobile drawer on navigation
+    this.closeMobileSidebar();
+  }
+
+  toggleMobileSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar) return;
+
+    const isOpen = sidebar.classList.contains('mobile-open');
+    if (isOpen) {
+      this.closeMobileSidebar();
+    } else {
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('mobile-open');
+      if (backdrop) backdrop.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  closeMobileSidebar() {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) {
+      sidebar.classList.remove('mobile-open');
+      if (!auth.isAuthenticated() || ['landing', 'how-it-works', 'features', 'login', 'register', 'forgot-password', 'reset-password'].includes(this.currentView)) {
+        sidebar.classList.add('hidden');
+      }
+    }
+    if (backdrop) backdrop.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
   updateNavigationUI() {
     const isAuthed = auth.isAuthenticated();
     const user = auth.getUser();
+    const publicViews = ['landing', 'how-it-works', 'features', 'login', 'register', 'forgot-password', 'reset-password'];
+    const isPublicView = publicViews.includes(this.currentView);
 
     // Public Header vs Authenticated Header / Layout
     const publicHeader = document.getElementById('public-header');
     const authHeader = document.getElementById('auth-header');
     const appSidebar = document.getElementById('app-sidebar');
 
-    if (isAuthed) {
+    if (isAuthed && !isPublicView) {
       if (publicHeader) publicHeader.classList.add('hidden');
       if (authHeader) authHeader.classList.remove('hidden');
       if (appSidebar) appSidebar.classList.remove('hidden');
@@ -120,7 +153,7 @@ class AppRouter {
       userEmailBadges.forEach(el => el.textContent = user.email || '');
 
       const userAvatarImgs = document.querySelectorAll('.current-user-avatar');
-      const avatarSrc = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=1e293b&color=94a3b8`;
+      const avatarSrc = user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=854d0e&color=ffffff`;
       userAvatarImgs.forEach(img => img.src = avatarSrc);
 
       // Active sidebar item highlight
@@ -131,7 +164,11 @@ class AppRouter {
     } else {
       if (publicHeader) publicHeader.classList.remove('hidden');
       if (authHeader) authHeader.classList.add('hidden');
-      if (appSidebar) appSidebar.classList.add('hidden');
+      if (appSidebar) {
+        appSidebar.classList.add('hidden');
+        appSidebar.classList.remove('mobile-open');
+      }
+      this.closeMobileSidebar();
     }
   }
 
@@ -160,6 +197,7 @@ class AppRouter {
       if (navTarget) {
         e.preventDefault();
         const targetView = navTarget.dataset.nav;
+        this.closeMobileSidebar();
         this.navigate(targetView);
       }
 
@@ -167,6 +205,7 @@ class AppRouter {
       const logoutBtn = e.target.closest('[data-action="logout"]');
       if (logoutBtn) {
         e.preventDefault();
+        this.closeMobileSidebar();
         auth.logout();
       }
 
@@ -191,15 +230,21 @@ class AppRouter {
         }
       }
     });
-    // Mobile Sidebar Toggle
+
+    // Mobile Sidebar Toggle & Close Handlers
     const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
     if (btnToggleSidebar) {
-      btnToggleSidebar.addEventListener('click', () => {
-        const sidebar = document.getElementById('app-sidebar');
-        if (sidebar) {
-          sidebar.classList.toggle('hidden');
-        }
-      });
+      btnToggleSidebar.addEventListener('click', () => this.toggleMobileSidebar());
+    }
+
+    const btnCloseSidebar = document.getElementById('btn-close-sidebar');
+    if (btnCloseSidebar) {
+      btnCloseSidebar.addEventListener('click', () => this.closeMobileSidebar());
+    }
+
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener('click', () => this.closeMobileSidebar());
     }
 
     // Toggle OAuth Setup Guide
