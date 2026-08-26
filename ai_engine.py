@@ -52,56 +52,17 @@ def clean_llm_json(text):
         return None
 
 def generate_excuse_with_gemini(api_key, scenario, recipient, situation_type="General", tone="Professional", length="Medium", delivery_method="Email", user_name="Alex", details=""):
-    if not gemini_available or not api_key:
-        return None
+    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash"]
     
-    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-pro"]
-    
-    prompt = f"""
-You are an expert communications specialist crafting realistic, believable, and context-tailored explanations.
-
-Input Parameters:
-- Situation Description: {scenario}
-- Situation Category: {situation_type}
-- Intended Recipient: {recipient}
-- Selected Tone: {tone}
-- Desired Length: {length} ({LENGTH_GUIDELINES.get(length, 'Medium length')})
-- Delivery Channel: {delivery_method} ({DELIVERY_FORMATS.get(delivery_method, 'Standard format')})
-- Sender Name: {user_name}
-- Additional Constraints: {details if details else 'None'}
-
-Formatting Rules:
-1. If Delivery Channel is 'Email', start the text with "Subject: [Clear, Professional Subject Line]" followed by a blank line, salutation, body, and closing.
-2. If Delivery Channel is 'In Person', phrase it as a spoken conversational script that sounds natural when spoken aloud.
-3. If Delivery Channel is 'WhatsApp' or 'SMS', keep it conversational without email subjects.
-4. Adhere strictly to the requested length ({length}).
-5. Generate a primary response plus 2 diverse alternative variants, an estimated believability score (85-99), risk level (Low, Moderate), and 3 actionable tactical follow-up tips.
-
-Return ONLY a JSON object matching this schema:
-{{
-  "primary_text": "Full drafted message ready to send or speak",
-  "variations": [
-    {{"title": "Concise Option", "text": "Short alternative"}},
-    {{"title": "Detailed Option", "text": "Detailed alternative"}}
-  ],
-  "believability_score": 96,
-  "risk_level": "Low",
-  "tips": [
-    "Send the explanation at least 15 minutes before the scheduled time.",
-    "Proactively propose a specific rescheduling window.",
-    "Keep your explanation consistent if asked for minor clarification."
-  ]
-}}
-"""
     for model_name in candidate_models:
         try:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
+            response = model.generate_content(prompt, request_options={"timeout": 4})
             parsed = clean_llm_json(response.text)
             if parsed and 'primary_text' in parsed:
                 return parsed
-        except Exception as e:
+        except Exception:
             continue
     return None
 
@@ -221,7 +182,7 @@ You are a professional communications specialist.
 Rewrite the following message according to the user's specific instruction.
 
 Original Message:
-\"\"\"{original_text}\"\"\"
+{original_text}
 
 Instruction / Goal:
 {instruction}
@@ -236,11 +197,12 @@ Rules:
 - Keep the message authentic, natural, believable, and ready to send.
 - No conversational filler, no robot tags. Return ONLY the rewritten message text.
 """
+    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash"]
     for model_name in candidate_models:
         try:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
+            response = model.generate_content(prompt, request_options={"timeout": 4})
             text = response.text.strip()
             if text:
                 return text

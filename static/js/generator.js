@@ -154,7 +154,7 @@ export class GeneratorManager {
     });
 
     // 4. Generate Button Trigger
-    const btnGenerate = document.getElementById('btn-generate-wizard');
+    const btnGenerate = document.getElementById('btn-generate-wizard') || document.getElementById('btn-generate-excuse');
     if (btnGenerate) {
       btnGenerate.addEventListener('click', () => this.handleGenerate());
     }
@@ -178,7 +178,7 @@ export class GeneratorManager {
       btnRegenResult.addEventListener('click', () => this.handleGenerate(true));
     }
 
-    const btnToggleEdit = document.getElementById('btn-toggle-edit');
+    const btnToggleEdit = document.getElementById('btn-toggle-edit') || document.getElementById('btn-toggle-inline-edit');
     if (btnToggleEdit) {
       btnToggleEdit.addEventListener('click', () => this.toggleInlineEdit());
     }
@@ -203,7 +203,7 @@ export class GeneratorManager {
       btnRestart.addEventListener('click', () => this.resetWizard());
     }
 
-    const btnCreateDoc = document.getElementById('btn-create-doc-from-result');
+    const btnCreateDoc = document.getElementById('btn-goto-proof-doc') || document.getElementById('btn-create-doc-from-result');
     if (btnCreateDoc) {
       btnCreateDoc.addEventListener('click', () => {
         window.dispatchEvent(new CustomEvent('nav:navigate', {
@@ -228,7 +228,7 @@ export class GeneratorManager {
 
     // 7. 23. Custom Modification
     const btnApplyCustom = document.getElementById('btn-apply-custom-mod');
-    const customInp = document.getElementById('custom-mod-input');
+    const customInp = document.getElementById('custom-mod-prompt') || document.getElementById('custom-mod-input');
     if (btnApplyCustom) {
       btnApplyCustom.addEventListener('click', () => {
         const instruction = customInp ? customInp.value.trim() : '';
@@ -317,10 +317,10 @@ export class GeneratorManager {
   }
 
   updateSummary() {
-    const sumRec = document.getElementById('summary-recipient');
-    const sumType = document.getElementById('summary-type');
-    const sumTone = document.getElementById('summary-tone');
-    const sumLen = document.getElementById('summary-length');
+    const sumRec = document.getElementById('summary-recipient') || document.getElementById('sum-recipient');
+    const sumType = document.getElementById('summary-type') || document.getElementById('sum-type');
+    const sumTone = document.getElementById('summary-tone') || document.getElementById('sum-tone');
+    const sumLen = document.getElementById('summary-length') || document.getElementById('sum-length');
 
     if (sumRec) sumRec.textContent = this.getEffectiveRecipient();
     if (sumType) sumType.textContent = this.situationType;
