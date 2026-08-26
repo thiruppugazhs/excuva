@@ -1,0 +1,29 @@
+# Environments & Secrets
+.env
+.env.local
+.env.*.local
+.neon
+
+# Python & Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Database files & Local uploads
+*.db
+*.sqlite
+*.sqlite3
+excuse_ai.db
+uploads/
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EXCUSE.AI — Intelligent Explanation & Document Generator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+  <!-- ==================== PUBLIC HEADER ==================== -->
+  <header id="public-header" class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-8">
+        <a href="#" data-nav="landing" class="flex items-center gap-2.5 group">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-sm group-hover:bg-blue-500 transition-colors font-mono">
+            E
+          </div>
+          <span class="font-extrabold text-lg tracking-tight text-white font-mono">EXCUSE<span class="text-blue-500">.AI</span></span>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+          <a href="#" data-nav="landing" class="hover:text-white transition-colors">Home</a>
+          <a href="#" data-nav="how-it-works" class="hover:text-white transition-colors">How It Works</a>
+          <a href="#" data-nav="features" class="hover:text-white transition-colors">Features</a>
+        </nav>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button data-nav="login" class="btn-ghost text-sm font-medium px-3.5 py-1.5">
+          Login
+        </button>
+        <button data-nav="register" class="btn-primary text-sm font-medium px-4 py-1.5">
+          Get Started
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== AUTHENTICATED TOP HEADER ==================== -->
+  <header id="auth-header" class="hidden border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <a href="#" data-nav="dashboard" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white font-mono">
+            E
+          </div>
+          <span class="font-extrabold text-lg tracking-tight text-white font-mono">EXCUSE<span class="text-blue-500">.AI</span></span>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <button data-nav="generator" class="hidden sm:inline-flex btn-primary text-xs font-semibold px-3 py-1.5">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          New Explanation
+        </button>
+
+        <div class="flex items-center gap-3 pl-3 border-l border-slate-800">
+          <img src="" alt="Avatar" class="current-user-avatar w-8 h-8 rounded-full border border-slate-700 object-cover">
+          <div class="hidden md:block text-left">
+            <p class="current-user-name text-xs font-semibold text-slate-200 leading-tight">User</p>
+            <p class="current-user-email text-[11px] text-slate-400 leading-tight">user@example.com</p>
+          </div>
+          <button data-action="logout" class="btn-ghost text-xs text-slate-400 hover:text-rose-400 p-1.5" title="Sign out">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT CONTAINER ==================== -->
+  <div class="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto">
+
+    <!-- Authenticated Sidebar Navigation -->
+    <aside id="app-sidebar" class="hidden w-full md:w-64 border-r border-slate-800/80 bg-slate-950 p-4 shrink-0">
+      <div class="sticky top-20 space-y-6">
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Workspace</p>
+          <nav class="space-y-1">
+            <a href="#" data-nav="dashboard" data-view="dashboard" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+              </svg>
+              Dashboard
+            </a>
+
+            <a href="#" data-nav="generator" data-view="generator" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+              Generate Excuse
+            </a>
+
+            <a href="#" data-nav="documents" data-view="documents" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              Proof Documents
+            </a>
+          </nav>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Saved Records</p>
+          <nav class="space-y-1">
+            <a href="#" data-nav="history" data-view="history" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              History
+            </a>
+
+            <a href="#" data-nav="favorites" data-view="favorites" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+              </svg>
+              Favorites
+            </a>
+          </nav>
+        </div>
+
+        <div>
+          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Account</p>
+          <nav class="space-y-1">
+            <a href="#" data-nav="profile" data-view="profile" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              Profile
+            </a>
+
+            <a href="#" data-nav="settings" data-view="settings" class="sidebar-nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition-colors">
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              Settings
+            </a>
+
+            <button data-action="logout" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-950/30 transition-colors text-left">
+              <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              Logout
+            </button>
+          </nav>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content Views Area -->
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+
+      <!-- ==================== VIEW: LANDING ==================== -->
+      <section id="view-landing" class="view-section py-8 sm:py-16">
+        <div class="text-center max-w-3xl mx-auto space-y-6">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-slate-800 bg-slate-900/60 text-xs font-medium text-slate-300">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            Professional Communication & Situation Explanations
+          </div>
+
+          <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            AI-Powered Intelligent <br class="hidden sm:block">
+            <span class="text-blue-500">Excuse Generator</span>
+          </h1>
+
+          <p class="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Turn any difficult situation into a clear, natural and context-aware explanation.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <button data-nav="generator" class="w-full sm:w-auto btn-primary text-base font-semibold px-6 py-3">
+              Generate an Excuse
+            </button>
+            <button data-nav="features" class="w-full sm:w-auto btn-secondary text-base font-medium px-6 py-3">
+              Explore Features
+            </button>
+          </div>
+        </div>
+
+        <!-- Capability Cards Grid -->
+        <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/40">
+            <div class="w-10 h-10 rounded-lg bg-blue-950 border border-blue-800 flex items-center justify-center text-blue-400 mb-4 font-semibold">
+              01
+            </div>
+            <h3 class="text-lg font-bold text-slate-100 mb-2">Contextual Understanding</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Analyzes the situation, urgency level, and constraints to produce genuine, highly credible phrasing.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/40">
+            <div class="w-10 h-10 rounded-lg bg-blue-950 border border-blue-800 flex items-center justify-center text-blue-400 mb-4 font-semibold">
+              02
+            </div>
+            <h3 class="text-lg font-bold text-slate-100 mb-2">Recipient Calibration</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Tailors language specifically for managers, professors, clients, colleagues, friends, or parents.
+            </p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/40">
+            <div class="w-10 h-10 rounded-lg bg-blue-950 border border-blue-800 flex items-center justify-center text-blue-400 mb-4 font-semibold">
+              03
+            </div>
+            <h3 class="text-lg font-bold text-slate-100 mb-2">Supporting Documents</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">
+              Generates formal verification slips, consultation statements, and work orders ready for export.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: HOW IT WORKS ==================== -->
+      <section id="view-how-it-works" class="view-section hidden py-10 max-w-4xl mx-auto space-y-12">
+        <div class="text-center space-y-3">
+          <h2 class="text-3xl font-extrabold text-white">How It Works</h2>
+          <p class="text-slate-400">Three straightforward steps to produce a believable explanation.</p>
+        </div>
+
+        <div class="space-y-6">
+          <div class="flex items-start gap-6 p-6 rounded-xl border border-slate-800 bg-slate-900/60">
+            <div class="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xl shrink-0">1</div>
+            <div>
+              <h3 class="text-lg font-bold text-white mb-1">State Your Situation</h3>
+              <p class="text-sm text-slate-400 leading-relaxed">Enter your scenario (e.g., missed deadline, late arrival, unexpected absence) and specify urgency.</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-6 p-6 rounded-xl border border-slate-800 bg-slate-900/60">
+            <div class="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xl shrink-0">2</div>
+            <div>
+              <h3 class="text-lg font-bold text-white mb-1">Select Recipient & Tone</h3>
+              <p class="text-sm text-slate-400 leading-relaxed">Choose who is receiving the message (Manager, Professor, Client, Friend) and the tone (Professional, Formal, Apologetic, Short & Direct).</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-6 p-6 rounded-xl border border-slate-800 bg-slate-900/60">
+            <div class="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/30 text-blue-400 flex items-center justify-center font-bold text-xl shrink-0">3</div>
+            <div>
+              <h3 class="text-lg font-bold text-white mb-1">Refine & Export Documentation</h3>
+              <p class="text-sm text-slate-400 leading-relaxed">Copy the ready-to-send draft, use the AI rewriter for adjustments, or generate an official declaration document with a verification code.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center pt-4">
+          <button data-nav="register" class="btn-primary px-6 py-2.5 font-semibold">Get Started Free</button>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: FEATURES ==================== -->
+      <section id="view-features" class="view-section hidden py-10 max-w-5xl mx-auto space-y-12">
+        <div class="text-center space-y-3">
+          <h2 class="text-3xl font-extrabold text-white">Application Features</h2>
+          <p class="text-slate-400">Everything needed to handle scheduling conflicts and unexpected disruptions.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">Intelligent Explanation Engine</h3>
+            <p class="text-sm text-slate-400">Understands the nuance of every scenario and creates believable, structured messages with actionable follow-up advice.</p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">Tone Control Matrix</h3>
+            <p class="text-sm text-slate-400">Professional, Casual, Friendly, Apologetic, Funny, Formal, and Short & Direct tone configurations.</p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">Recipient Awareness</h3>
+            <p class="text-sm text-slate-400">Generates custom drafts calibrated specifically for Managers, Employers, Professors, Teachers, Clients, Friends, Parents, or Colleagues.</p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">Supporting Proof Documents</h3>
+            <p class="text-sm text-slate-400">Creates formatted medical consultation notices, roadside tow invoices, transit disruption statements, and maintenance work orders.</p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">Interactive AI Rewriter</h3>
+            <p class="text-sm text-slate-400">Instantly transform any drafted message: make it more concise, more apologetic, more formal, or add plausible technical details.</p>
+          </div>
+
+          <div class="p-6 rounded-xl border border-slate-800 bg-slate-900/60 space-y-2">
+            <h3 class="text-lg font-bold text-white">History & Favorites Archive</h3>
+            <p class="text-sm text-slate-400">Instant full-text search across past explanations and documents with 1-click clipboard copying and star tagging.</p>
+          </div>
+        </div>
+
+        <div class="text-center pt-4">
+          <button data-nav="register" class="btn-primary px-6 py-2.5 font-semibold">Start Generating Now</button>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: CREATE ACCOUNT (REGISTER) ==================== -->
+      <section id="view-register" class="view-section hidden py-12 max-w-md mx-auto">
+        <div class="p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl space-y-6">
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-bold text-white tracking-tight">Create Your Account</h2>
+            <p class="text-sm text-slate-400">Get access to all explanation tools and document generators.</p>
+          </div>
+
+          <form id="form-register" class="space-y-4">
+            <div>
+              <label for="reg-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Full Name</label>
+              <input type="text" id="reg-name" required placeholder="Alex Mercer" class="input-base">
+            </div>
+
+            <div>
+              <label for="reg-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+              <input type="email" id="reg-email" required placeholder="alex@example.com" class="input-base">
+            </div>
+
+            <div>
+              <label for="reg-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Password</label>
+              <input type="password" id="reg-password" required minlength="6" placeholder="Minimum 6 characters" class="input-base">
+            </div>
+
+            <div>
+              <label for="reg-confirm-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Confirm Password</label>
+              <input type="password" id="reg-confirm-password" required minlength="6" placeholder="Repeat your password" class="input-base">
+            </div>
+
+            <div class="flex items-start gap-2.5 pt-1">
+              <input type="checkbox" id="reg-terms" required class="mt-1 rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500">
+              <label for="reg-terms" class="text-xs text-slate-400">
+                I agree to the <a href="#" data-nav="terms" class="text-blue-400 hover:underline">Terms of Service</a> and <a href="#" data-nav="privacy" class="text-blue-400 hover:underline">Privacy Policy</a>.
+              </label>
+            </div>
+
+            <button type="submit" id="btn-register-submit" class="btn-primary w-full py-2.5 font-semibold mt-2">
+              Create Account
+            </button>
+          </form>
+
+          <div class="relative flex items-center justify-center">
+            <div class="border-t border-slate-800 w-full"></div>
+            <span class="bg-slate-900 px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">OR</span>
+          </div>
+
+          <button type="button" class="btn-google-auth btn-secondary w-full py-2.5 flex items-center justify-center gap-3 text-sm font-medium">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.8C6.5 7.1 9 5 12 5z"/>
+              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+              <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
+              <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <p class="text-center text-xs text-slate-400">
+            Already have an account?
+            <a href="#" data-nav="login" class="text-blue-400 font-semibold hover:underline">Login</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: LOGIN ==================== -->
+      <section id="view-login" class="view-section hidden py-12 max-w-md mx-auto">
+        <div class="p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl space-y-6">
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-bold text-white tracking-tight">Welcome Back</h2>
+            <p class="text-sm text-slate-400">Log in to your EXCUSE.AI account.</p>
+          </div>
+
+          <form id="form-login" class="space-y-4">
+            <div>
+              <label for="login-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+              <input type="email" id="login-email" required placeholder="alex@example.com" class="input-base">
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="login-password" class="block text-xs font-semibold text-slate-300">Password</label>
+                <a href="#" data-nav="forgot-password" class="text-xs text-blue-400 hover:underline">Forgot Password?</a>
+              </div>
+              <input type="password" id="login-password" required placeholder="Enter password" class="input-base">
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <input type="checkbox" id="login-remember" class="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500">
+              <label for="login-remember" class="text-xs text-slate-400">Remember me</label>
+            </div>
+
+            <button type="submit" id="btn-login-submit" class="btn-primary w-full py-2.5 font-semibold mt-2">
+              Login
+            </button>
+          </form>
+
+          <div class="relative flex items-center justify-center">
+            <div class="border-t border-slate-800 w-full"></div>
+            <span class="bg-slate-900 px-3 text-xs text-slate-500 uppercase tracking-wider font-semibold">OR</span>
+          </div>
+
+          <button type="button" class="btn-google-auth btn-secondary w-full py-2.5 flex items-center justify-center gap-3 text-sm font-medium">
+            <svg class="w-4 h-4" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.8C6.5 7.1 9 5 12 5z"/>
+              <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+              <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
+              <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+            </svg>
+            Continue with Google
+          </button>
+
+          <p class="text-center text-xs text-slate-400">
+            Don't have an account?
+            <a href="#" data-nav="register" class="text-blue-400 font-semibold hover:underline">Create Account</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: FORGOT PASSWORD ==================== -->
+      <section id="view-forgot-password" class="view-section hidden py-12 max-w-md mx-auto">
+        <div class="p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl space-y-6">
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-bold text-white tracking-tight">Forgot Password</h2>
+            <p class="text-sm text-slate-400">Enter your registered email address to receive password reset instructions.</p>
+          </div>
+
+          <form id="form-forgot-password" class="space-y-4">
+            <div>
+              <label for="forgot-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email Address</label>
+              <input type="email" id="forgot-email" required placeholder="alex@example.com" class="input-base">
+            </div>
+
+            <button type="submit" id="btn-forgot-submit" class="btn-primary w-full py-2.5 font-semibold">
+              Send Reset Link
+            </button>
+          </form>
+
+          <div id="forgot-result-box" class="hidden p-4 rounded-lg border border-blue-800/80 bg-blue-950/40 text-xs text-slate-300 space-y-2">
+            <p>If an account exists, a secure reset token has been dispatched.</p>
+            <button type="button" id="forgot-test-link" class="text-blue-400 underline font-medium hover:text-blue-300">
+              Click here to proceed directly to Password Reset (Test Demo)
+            </button>
+          </div>
+
+          <p class="text-center text-xs text-slate-400">
+            Remembered your password?
+            <a href="#" data-nav="login" class="text-blue-400 font-semibold hover:underline">Return to Login</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: RESET PASSWORD ==================== -->
+      <section id="view-reset-password" class="view-section hidden py-12 max-w-md mx-auto">
+        <div class="p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl space-y-6">
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-bold text-white tracking-tight">Set New Password</h2>
+            <p class="text-sm text-slate-400">Enter your secure reset token and your new password.</p>
+          </div>
+
+          <form id="form-reset-password" class="space-y-4">
+            <div>
+              <label for="reset-token" class="block text-xs font-semibold text-slate-300 mb-1.5">Reset Token</label>
+              <input type="text" id="reset-token" required placeholder="Paste reset token" class="input-base font-mono text-xs">
+            </div>
+
+            <div>
+              <label for="reset-new-password" class="block text-xs font-semibold text-slate-300 mb-1.5">New Password</label>
+              <input type="password" id="reset-new-password" required minlength="6" placeholder="Minimum 6 characters" class="input-base">
+            </div>
+
+            <div>
+              <label for="reset-confirm-password" class="block text-xs font-semibold text-slate-300 mb-1.5">Confirm New Password</label>
+              <input type="password" id="reset-confirm-password" required minlength="6" placeholder="Repeat new password" class="input-base">
+            </div>
+
+            <button type="submit" id="btn-reset-submit" class="btn-primary w-full py-2.5 font-semibold">
+              Update Password
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: DASHBOARD ==================== -->
+      <section id="view-dashboard" class="view-section hidden space-y-8">
+        <!-- Dashboard Header & Time-Aware Greeting -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="dash-greeting" class="text-2xl sm:text-3xl font-extrabold text-white">Good evening 👋</h2>
+              <span id="dash-user-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Account Active</span>
+            </div>
+            <p class="text-sm text-slate-400 mt-1">What do you need today?</p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center gap-3">
+            <button data-nav="generator" class="btn-primary text-sm font-semibold px-5 py-2.5 shadow-lg flex items-center gap-2">
+              <span>Generate Excuse</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+            </button>
+            <button data-nav="documents" class="btn-secondary text-sm font-medium px-4 py-2.5 flex items-center gap-2">
+              <span>Create Document</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 10. Dashboard Statistics (User-Specific) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/70">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Excuses Generated</p>
+            <p id="dash-stat-excuses" class="text-3xl font-extrabold text-white mt-2 font-mono">0</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Contextual explanations</span>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/70">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Saved Excuses</p>
+            <p id="dash-stat-saved" class="text-3xl font-extrabold text-white mt-2 font-mono">0</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Archived records</span>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/70">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Documents Created</p>
+            <p id="dash-stat-docs" class="text-3xl font-extrabold text-white mt-2 font-mono">0</p>
+            <span class="text-[11px] text-slate-400 mt-1 block">Official declaration sheets</span>
+          </div>
+
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/70">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Favorites</p>
+            <p id="dash-stat-favs" class="text-3xl font-extrabold text-amber-400 mt-2 font-mono">0</p>
+            <span class="text-[11px] text-amber-500/80 mt-1 block">Bookmarked for quick reuse</span>
+          </div>
+        </div>
+
+        <!-- Quick Launch Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div data-nav="generator" class="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 hover:bg-slate-850 hover:border-slate-700 transition-all cursor-pointer group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-blue-400">Main Feature</span>
+              <span class="text-xs text-slate-400 group-hover:text-blue-400 transition-colors">Start Wizard →</span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-blue-300 transition-colors">Generate an Intelligent Excuse</h3>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Turn missed deadlines, late arrivals, or cancellations into believable, natural explanations.</p>
+          </div>
+
+          <div data-nav="documents" class="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 hover:bg-slate-850 hover:border-slate-700 transition-all cursor-pointer group">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Proof Verification</span>
+              <span class="text-xs text-slate-400 group-hover:text-emerald-400 transition-colors">Create Proof →</span>
+            </div>
+            <h3 class="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors">Create Supporting Proof Document</h3>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">Generate official absence certificates, roadside towing work orders, and formal statements.</p>
+          </div>
+        </div>
+
+        <!-- Recent Activity Box -->
+        <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-white">Recent Activity</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Your recently generated explanations and verification documents.</p>
+            </div>
+            <a href="#" data-nav="history" class="text-xs text-blue-400 hover:underline">View All in History →</a>
+          </div>
+
+          <div id="dash-recent-list" class="space-y-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: GENERATE EXCUSE (7-STEP WIZARD) ==================== -->
+      <section id="view-generator" class="view-section hidden max-w-4xl mx-auto space-y-8">
+        
+        <!-- Header & Step Progress Bar -->
+        <div class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Intelligent Excuse Generator</h2>
+              <p class="text-sm text-slate-400">Turn any difficult situation into a clear, natural, and context-aware explanation.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="wizard-step-indicator" class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-950 text-blue-300 border border-blue-800">
+                Step 1 of 6
+              </span>
+            </div>
+          </div>
+
+          <!-- Wizard Progress Track -->
+          <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+            <div id="wizard-progress-bar" class="bg-blue-600 h-1.5 rounded-full transition-all duration-300" style="width: 16.66%"></div>
+          </div>
+        </div>
+
+        <!-- Wizard Container -->
+        <div id="wizard-container" class="p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl space-y-6">
+          
+          <!-- STEP 1: Describe the Situation -->
+          <div id="wizard-step-1" class="wizard-step space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 1 — Situation Description</span>
+              <h3 class="text-xl font-bold text-white mt-1">What happened?</h3>
+              <p class="text-xs text-slate-400 mt-1">Describe the situation naturally in your own words.</p>
+            </div>
+
+            <div class="space-y-2">
+              <textarea id="gen-situation" rows="4" maxlength="1000" placeholder="I missed my assignment deadline yesterday because..." class="input-base text-base leading-relaxed p-4"></textarea>
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span id="gen-char-count">Characters: 0 / 1000</span>
+                <span class="text-slate-400">Be as honest or detailed as you like</span>
+              </div>
+            </div>
+
+            <!-- 48. Recent Templates / Quick Start -->
+            <div class="space-y-2 pt-1">
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Quick Start Templates:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Late to class this morning due to transit delay.">
+                  Late to class
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Missed project deadline due to unexpected personal emergency.">
+                  Missed deadline
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Unable to attend today's scheduled meeting.">
+                  Can't attend meeting
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Requesting an extension for the final assignment submission.">
+                  Need an extension
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Need to cancel and reschedule my appointment today.">
+                  Cancel appointment
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Didn't reply to yesterday's urgent email in time.">
+                  Didn't reply
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Running 30 minutes late for work due to heavy traffic.">
+                  Running late
+                </button>
+                <button type="button" class="scenario-suggestion text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors border border-slate-700" data-scenario="Forgot something important and need to follow up with materials.">
+                  Forgot something
+                </button>
+              </div>
+            </div>
+
+            <!-- 47. Smart Suggestions Mode Chips -->
+            <div class="space-y-2 pt-2 border-t border-slate-800/80">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">You might want:</span>
+              <div class="flex flex-wrap gap-2">
+                <button type="button" class="smart-preset-chip text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:border-blue-500 hover:text-white transition-colors flex items-center gap-1.5" data-tone="Professional" data-recipient="Manager">
+                  <span>💼</span>
+                  <span>Professional</span>
+                </button>
+                <button type="button" class="smart-preset-chip text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:border-blue-500 hover:text-white transition-colors flex items-center gap-1.5" data-tone="Formal" data-recipient="Professor">
+                  <span>🎓</span>
+                  <span>Academic</span>
+                </button>
+                <button type="button" class="smart-preset-chip text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:border-blue-500 hover:text-white transition-colors flex items-center gap-1.5" data-tone="Direct" data-recipient="Colleague">
+                  <span>😐</span>
+                  <span>Simple</span>
+                </button>
+                <button type="button" class="smart-preset-chip text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:border-blue-500 hover:text-white transition-colors flex items-center gap-1.5" data-tone="Apologetic" data-recipient="Client">
+                  <span>🙏</span>
+                  <span>Apologetic</span>
+                </button>
+                <button type="button" class="smart-preset-chip text-xs px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:border-blue-500 hover:text-white transition-colors flex items-center gap-1.5" data-tone="Casual" data-recipient="Friend">
+                  <span>💬</span>
+                  <span>Casual</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Navigation Button -->
+            <div class="flex justify-end pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-next-1" class="btn-primary px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                <span>Continue</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 2: Select Recipient -->
+          <div id="wizard-step-2" class="wizard-step hidden space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 2 — Recipient</span>
+              <h3 class="text-xl font-bold text-white mt-1">Who is this explanation for?</h3>
+              <p class="text-xs text-slate-400 mt-1">Tone, salutation, and phrasing will adjust to your recipient.</p>
+            </div>
+
+            <!-- Recipient Radio Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="recipient-card-group">
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Professor" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Professor</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Teacher" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Teacher</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all active-card">
+                <input type="radio" name="wizard-recipient" value="Manager" checked class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Manager</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Employer" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Employer</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Client" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Client</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Friend" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Friend</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Parent" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Parent</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Colleague" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Colleague</span>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-recipient" value="Other" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-semibold text-white">Other</span>
+              </label>
+            </div>
+
+            <!-- Custom Recipient Input (When Other is selected) -->
+            <div id="custom-recipient-container" class="hidden space-y-1.5 pt-2">
+              <label for="gen-custom-recipient" class="block text-xs font-semibold text-slate-300">Specify recipient:</label>
+              <input type="text" id="gen-custom-recipient" placeholder="e.g. Project Lead, Landlord, Doctor" class="input-base">
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-prev-2" class="btn-secondary px-5 py-2.5 text-sm font-medium">← Back</button>
+              <button type="button" id="wizard-btn-next-2" class="btn-primary px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                <span>Continue</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 3: Select Situation Type -->
+          <div id="wizard-step-3" class="wizard-step hidden space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 3 — Situation Type</span>
+              <h3 class="text-xl font-bold text-white mt-1">What type of situation is this?</h3>
+              <p class="text-xs text-slate-400 mt-1">The AI will apply appropriate reasoning frameworks based on this category.</p>
+            </div>
+
+            <!-- Situation Type Radio Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="situation-card-group">
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all active-card">
+                <input type="radio" name="wizard-situation-type" value="Missed deadline" checked class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Missed deadline</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Running late" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Running late</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Couldn't attend" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Couldn't attend</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Need to cancel" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Need to cancel</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Forgot something" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Forgot something</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Didn't respond" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Didn't respond</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Missed a meeting" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Missed a meeting</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Requesting an extension" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Requesting an extension</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Personal issue" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Personal issue</span>
+              </label>
+              <label class="radio-card p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-situation-type" value="Other" class="text-blue-600 focus:ring-0">
+                <span class="text-sm font-medium text-white">Other</span>
+              </label>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-prev-3" class="btn-secondary px-5 py-2.5 text-sm font-medium">← Back</button>
+              <button type="button" id="wizard-btn-next-3" class="btn-primary px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                <span>Continue</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 4: Select Tone -->
+          <div id="wizard-step-4" class="wizard-step hidden space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 4 — Communication Tone</span>
+              <h3 class="text-xl font-bold text-white mt-1">Choose your tone</h3>
+              <p class="text-xs text-slate-400 mt-1">Align the emotional resonance and formality of your response.</p>
+            </div>
+
+            <!-- Tone Radio Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="tone-card-group">
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all active-card">
+                <input type="radio" name="wizard-tone" value="Professional" checked class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Professional</p>
+                  <p class="text-[11px] text-slate-400">Polite & business-ready</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Formal" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Formal</p>
+                  <p class="text-[11px] text-slate-400">Academic & structured</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Casual" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Casual</p>
+                  <p class="text-[11px] text-slate-400">Relaxed & informal</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Friendly" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Friendly</p>
+                  <p class="text-[11px] text-slate-400">Warm & relatable</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Apologetic" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Apologetic</p>
+                  <p class="text-[11px] text-slate-400">Sincere accountability</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Funny" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Funny</p>
+                  <p class="text-[11px] text-slate-400">Lighthearted humor</p>
+                </div>
+              </label>
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-tone" value="Direct" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Direct</p>
+                  <p class="text-[11px] text-slate-400">Concise & no fluff</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-prev-4" class="btn-secondary px-5 py-2.5 text-sm font-medium">← Back</button>
+              <button type="button" id="wizard-btn-next-4" class="btn-primary px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                <span>Continue</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 5: Select Length -->
+          <div id="wizard-step-5" class="wizard-step hidden space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 5 — Explanation Length</span>
+              <h3 class="text-xl font-bold text-white mt-1">How long should it be?</h3>
+              <p class="text-xs text-slate-400 mt-1">Choose the optimal depth of detail for your message.</p>
+            </div>
+
+            <!-- Length Radio Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="length-card-group">
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-start gap-3.5 transition-all">
+                <input type="radio" name="wizard-length" value="Very Short" class="mt-1 text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-bold text-white">Very Short</p>
+                  <p class="text-xs text-slate-400 mt-0.5">1 concise sentence (e.g. "Sorry, I couldn't make it due to an unexpected personal issue.")</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-start gap-3.5 transition-all">
+                <input type="radio" name="wizard-length" value="Short" class="mt-1 text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-bold text-white">Short</p>
+                  <p class="text-xs text-slate-400 mt-0.5">2-3 sentences. Quick reason and next action step.</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-start gap-3.5 transition-all active-card">
+                <input type="radio" name="wizard-length" value="Medium" checked class="mt-1 text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-bold text-white">Medium</p>
+                  <p class="text-xs text-slate-400 mt-0.5">1-2 well-crafted paragraphs with balanced context and resolution.</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-start gap-3.5 transition-all">
+                <input type="radio" name="wizard-length" value="Detailed" class="mt-1 text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-bold text-white">Detailed</p>
+                  <p class="text-xs text-slate-400 mt-0.5">Complete explanation with background context, sincere apology, and attachments.</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-prev-5" class="btn-secondary px-5 py-2.5 text-sm font-medium">← Back</button>
+              <button type="button" id="wizard-btn-next-5" class="btn-primary px-6 py-2.5 font-semibold text-sm flex items-center gap-2">
+                <span>Continue</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 6: Delivery Method -->
+          <div id="wizard-step-6" class="wizard-step hidden space-y-5">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 6 — Delivery Channel</span>
+              <h3 class="text-xl font-bold text-white mt-1">Where will you use it?</h3>
+              <p class="text-xs text-slate-400 mt-1">The AI formats the message specifically for your chosen medium.</p>
+            </div>
+
+            <!-- Delivery Method Radio Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="delivery-card-group">
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all active-card">
+                <input type="radio" name="wizard-delivery" value="Email" checked class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Email</p>
+                  <p class="text-[11px] text-slate-400">Subject + greeting + closing</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-delivery" value="WhatsApp" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">WhatsApp</p>
+                  <p class="text-[11px] text-slate-400">Conversational & direct</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-delivery" value="SMS" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">SMS</p>
+                  <p class="text-[11px] text-slate-400">Short text message</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-delivery" value="In Person" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">In Person</p>
+                  <p class="text-[11px] text-slate-400">Natural spoken script</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-delivery" value="College Portal" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">College Portal</p>
+                  <p class="text-[11px] text-slate-400">Academic ticket / note</p>
+                </div>
+              </label>
+
+              <label class="radio-card p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-3 transition-all">
+                <input type="radio" name="wizard-delivery" value="Work Chat" class="text-blue-600 focus:ring-0">
+                <div>
+                  <p class="text-sm font-semibold text-white">Work Chat</p>
+                  <p class="text-[11px] text-slate-400">Slack / MS Teams</p>
+                </div>
+              </label>
+            </div>
+
+            <!-- Step 7 Review Summary Box -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/80 space-y-2 text-xs text-slate-300">
+              <span class="font-bold text-slate-400 uppercase tracking-wider block text-[10px]">Generation Summary</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-400">
+                <div>Recipient: <strong id="summary-recipient" class="text-white">Manager</strong></div>
+                <div>Category: <strong id="summary-type" class="text-white">Missed deadline</strong></div>
+                <div>Tone: <strong id="summary-tone" class="text-white">Professional</strong></div>
+                <div>Length: <strong id="summary-length" class="text-white">Medium</strong></div>
+              </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+              <button type="button" id="wizard-btn-prev-6" class="btn-secondary px-5 py-2.5 text-sm font-medium">← Back</button>
+              <button type="button" id="btn-generate-wizard" class="btn-primary px-8 py-3 font-bold text-base shadow-xl flex items-center gap-2">
+                <span>Generate Excuse</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== 19. AI PROCESSING SCREEN ==================== -->
+        <div id="wizard-processing-screen" class="hidden p-8 sm:p-12 rounded-2xl border border-blue-900/50 bg-slate-900/90 shadow-2xl space-y-8 max-w-xl mx-auto text-center">
+          <div class="space-y-2">
+            <div class="w-12 h-12 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center mx-auto text-blue-400 animate-pulse">
+              <svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white">Creating your response...</h3>
+            <p class="text-xs text-slate-400">Applying communication guidelines and context parameters.</p>
+          </div>
+
+          <!-- Step-by-Step Animated Checklist -->
+          <div class="space-y-3 text-left max-w-sm mx-auto font-mono text-xs">
+            <div id="check-step-1" class="flex items-center gap-3 text-slate-400 transition-colors">
+              <span class="check-icon w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">○</span>
+              <span>Understanding situation</span>
+            </div>
+            <div id="check-step-2" class="flex items-center gap-3 text-slate-400 transition-colors">
+              <span class="check-icon w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">○</span>
+              <span>Identifying context</span>
+            </div>
+            <div id="check-step-3" class="flex items-center gap-3 text-slate-400 transition-colors">
+              <span class="check-icon w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">○</span>
+              <span>Applying selected tone</span>
+            </div>
+            <div id="check-step-4" class="flex items-center gap-3 text-slate-400 transition-colors">
+              <span class="check-icon w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">○</span>
+              <span>Optimizing length</span>
+            </div>
+            <div id="check-step-5" class="flex items-center gap-3 text-slate-400 transition-colors">
+              <span class="check-icon w-4 h-4 rounded-full border border-slate-700 flex items-center justify-center text-[10px]">○</span>
+              <span>Making response natural</span>
+            </div>
+          </div>
+
+          <p class="text-xs text-blue-400 font-mono animate-pulse">Generating...</p>
+        </div>
+
+        <!-- ==================== 20. EXCUSE RESULT SCREEN ==================== -->
+        <div id="wizard-result-screen" class="hidden space-y-6 pt-2">
+          
+          <!-- Primary Draft Card -->
+          <div class="p-6 sm:p-8 rounded-2xl border border-blue-900/60 bg-slate-900/90 shadow-2xl space-y-6">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+              <div>
+                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">YOUR GENERATED RESPONSE</span>
+                <div class="flex flex-wrap items-center gap-2 mt-1.5">
+                  <span id="result-badge-tone" class="px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Tone: Professional</span>
+                  <span id="result-badge-length" class="px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Length: Medium</span>
+                  <span id="result-badge-recipient" class="px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">Recipient: Professor</span>
+                  <span id="result-badge-delivery" class="px-2.5 py-0.5 rounded text-xs font-semibold bg-blue-950 text-blue-300 border border-blue-800">Channel: Email</span>
+                </div>
+              </div>
+
+              <!-- 21. Action Toolbar (Copy, Save, Regenerate, Edit, Delete) -->
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" id="btn-copy-result" class="btn-primary text-xs px-3.5 py-2 font-semibold shadow flex items-center gap-1.5" title="Copy to clipboard">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                  <span>Copy</span>
+                </button>
+
+                <button type="button" id="btn-save-result" class="btn-secondary text-xs px-3 py-2 font-medium flex items-center gap-1.5" title="Save / Bookmark">
+                  <svg id="star-icon" class="w-4 h-4 text-slate-400 fill-current" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                  <span id="save-btn-label">Save</span>
+                </button>
+
+                <button type="button" id="btn-regenerate-result" class="btn-secondary text-xs px-3 py-2 font-medium flex items-center gap-1.5" title="Generate fresh version">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  <span>Regenerate</span>
+                </button>
+
+                <button type="button" id="btn-toggle-edit" class="btn-secondary text-xs px-3 py-2 font-medium flex items-center gap-1.5" title="Manually modify text">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                  <span id="edit-btn-label">Edit</span>
+                </button>
+
+                <button type="button" id="btn-delete-result" class="p-2 rounded-lg border border-slate-700 bg-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-900 transition-colors" title="Delete excuse">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- 24. Excuse Versions Bar -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold uppercase tracking-wider text-[11px]">Version History:</span>
+                <span class="text-slate-400">Click to switch version</span>
+              </div>
+              <div id="result-versions-list" class="flex flex-wrap items-center gap-2">
+                <!-- Versions populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Message Text Container / Inline Editor -->
+            <div id="result-text-display-container">
+              <div class="p-6 rounded-xl border border-slate-800 bg-slate-950/80 font-mono text-sm sm:text-base leading-relaxed text-slate-200 whitespace-pre-line shadow-inner select-all" id="result-primary-text">
+                <!-- Generated explanation text -->
+              </div>
+            </div>
+
+            <!-- Inline Manual Editor (Hidden by default) -->
+            <div id="result-inline-editor-container" class="hidden space-y-3">
+              <textarea id="result-editable-textarea" rows="6" class="input-base font-mono text-sm sm:text-base leading-relaxed p-4"></textarea>
+              <div class="flex items-center justify-end gap-2">
+                <button type="button" id="btn-cancel-edit" class="btn-secondary text-xs px-3.5 py-1.5">Cancel</button>
+                <button type="button" id="btn-save-inline-edit" class="btn-primary text-xs px-4 py-1.5 font-semibold">Save Changes</button>
+              </div>
+            </div>
+
+            <!-- 22. Smart AI Modification (Quick Improvement Actions) -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Improve Response</span>
+                <span class="text-[11px] text-slate-400">1-click AI refinement</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make Shorter">
+                  Make Shorter
+                </button>
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make More Formal">
+                  Make More Formal
+                </button>
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make More Casual">
+                  Make More Casual
+                </button>
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make Friendlier">
+                  Make Friendlier
+                </button>
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make More Natural">
+                  Make More Natural
+                </button>
+                <button type="button" class="quick-mod-btn text-xs px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 hover:bg-blue-600 hover:text-white border border-slate-700 transition-colors" data-mod="Make Apologetic">
+                  Make Apologetic
+                </button>
+              </div>
+            </div>
+
+            <!-- 23. Custom Modification -->
+            <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-2.5">
+              <label for="custom-mod-input" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Want to change something?
+              </label>
+              <div class="flex gap-2">
+                <input type="text" id="custom-mod-input" placeholder="e.g. Make it sound less serious and more casual" class="input-base text-sm">
+                <button type="button" id="btn-apply-custom-mod" class="btn-primary text-xs px-5 py-2 font-semibold shrink-0">
+                  Apply
+                </button>
+              </div>
+            </div>
+
+            <!-- Secondary Action Links -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button type="button" id="btn-create-doc-from-result" class="btn-secondary text-xs px-3.5 py-2 font-medium text-blue-300 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Need a supporting document? Create Proof →</span>
+              </button>
+
+              <button type="button" id="btn-wizard-restart" class="text-xs text-slate-400 hover:text-white transition-colors underline">
+                Start New Explanation →
+              </button>
+            </div>
+
+            <!-- Believability & Risk Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl border border-slate-800 bg-slate-900/50">
+              <div>
+                <div class="flex items-center justify-between text-xs mb-1.5">
+                  <span class="font-medium text-slate-400">Believability Rating</span>
+                  <span id="result-score-val" class="font-bold font-mono text-emerald-400">96%</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                  <div id="result-score-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 96%"></div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between sm:justify-end gap-3 sm:border-l sm:border-slate-800 sm:pl-4">
+                <span class="text-xs text-slate-400 font-medium">Risk Level:</span>
+                <span id="result-risk-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  Low Risk
+                </span>
+              </div>
+            </div>
+
+            <!-- Tactical Advice -->
+            <div class="space-y-2.5 pt-2">
+              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tactical Follow-up Recommendations</h4>
+              <ul id="result-tips-list" class="space-y-2 text-xs text-slate-300 font-mono">
+                <!-- Tips populated dynamically -->
+              </ul>
+            </div>
+          </div>
+
+          <!-- Alternative Variations -->
+          <div class="space-y-3">
+            <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider">Alternative Options</h4>
+            <div id="result-variations-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Variations populated dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 25-31. MAIN FEATURE 2: PROOF & DOCUMENT GENERATOR ==================== -->
+      <section id="view-documents" class="view-section hidden max-w-4xl mx-auto space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Proof & Document Generator</h2>
+          <p class="text-sm text-slate-400">Generate legitimate supporting drafts, formal declaration sheets, and administrative requests.</p>
+        </div>
+
+        <!-- 27-28. Document Config Form -->
+        <div id="doc-form-card" class="p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl space-y-6">
+          
+          <!-- 27. Select Document Type -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2.5">
+              What would you like to create?
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5" id="doc-type-group">
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all active-card">
+                <input type="radio" name="doc-type-radio" value="Explanation Letter" checked class="text-blue-600 focus:ring-0">
+                <span>Explanation Letter</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Personal Declaration" class="text-blue-600 focus:ring-0">
+                <span>Personal Declaration</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Leave Request" class="text-blue-600 focus:ring-0">
+                <span>Leave Request</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Delay Notification" class="text-blue-600 focus:ring-0">
+                <span>Delay Notification</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Appointment Request" class="text-blue-600 focus:ring-0">
+                <span>Appointment Request</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Incident Explanation" class="text-blue-600 focus:ring-0">
+                <span>Incident Explanation</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Extension Request" class="text-blue-600 focus:ring-0">
+                <span>Extension Request</span>
+              </label>
+              <label class="radio-card p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-850 cursor-pointer flex items-center gap-2 text-xs font-medium text-white transition-all">
+                <input type="radio" name="doc-type-radio" value="Absence Explanation" class="text-blue-600 focus:ring-0">
+                <span>Absence Explanation</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 28. Enter Document Details -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="doc-title-input" class="block text-xs font-semibold text-slate-300 mb-1.5">Document Title</label>
+              <input type="text" id="doc-title-input" placeholder="e.g. Assignment Extension Request" class="input-base">
+            </div>
+
+            <div>
+              <label for="doc-recipient-input" class="block text-xs font-semibold text-slate-300 mb-1.5">Recipient</label>
+              <input type="text" id="doc-recipient-input" placeholder="e.g. Professor" class="input-base">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="doc-date-input" class="block text-xs font-semibold text-slate-300 mb-1.5">Date</label>
+              <input type="text" id="doc-date-input" placeholder="e.g. 26 August 2026" class="input-base">
+            </div>
+
+            <div>
+              <label for="doc-reason-input" class="block text-xs font-semibold text-slate-300 mb-1.5">Reason / Circumstance</label>
+              <input type="text" id="doc-reason-input" placeholder="e.g. Unexpected personal issue" class="input-base">
+            </div>
+          </div>
+
+          <div>
+            <label for="doc-details-input" class="block text-xs font-semibold text-slate-300 mb-1.5">
+              Additional Details <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea id="doc-details-input" rows="3" placeholder="Specify any additional context, course name, submission window or dates..." class="input-base"></textarea>
+          </div>
+
+          <!-- 29. Generate Document Button -->
+          <button type="button" id="btn-generate-formal-doc" class="btn-primary w-full py-3 font-semibold text-base shadow-xl">
+            <span id="doc-btn-text">Generate Supporting Document</span>
+            <div id="doc-spinner" class="hidden w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin ml-2"></div>
+          </button>
+        </div>
+
+        <!-- 30-31. Live Document Editor & Formatting Canvas -->
+        <div id="doc-editor-section" class="hidden space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-white">Document Editor</h3>
+              <p class="text-xs text-slate-400">Click anywhere in the sheet to manually edit text before printing or copying.</p>
+            </div>
+
+            <!-- Action Toolbar (Save, Download PDF, Copy) -->
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" id="btn-copy-editor-text" class="btn-secondary text-xs px-3.5 py-1.5 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Copy</span>
+              </button>
+
+              <button type="button" id="btn-save-edited-doc" class="btn-secondary text-xs px-3.5 py-1.5 flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                <span>Save</span>
+              </button>
+
+              <button type="button" id="btn-print-formal-doc" class="btn-primary text-xs px-4 py-1.5 font-semibold shadow flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>Download PDF</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 31. Document Formatting Toolbar -->
+          <div class="p-2.5 rounded-xl border border-slate-800 bg-slate-900/80 flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-slate-400 font-medium mr-1">Format:</span>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold" data-cmd="bold" title="Bold">B</button>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 italic" data-cmd="italic" title="Italic">I</button>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 underline" data-cmd="underline" title="Underline">U</button>
+            <span class="text-slate-700">|</span>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200" data-cmd="justifyLeft" title="Align Left">Left</button>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200" data-cmd="justifyCenter" title="Align Center">Center</button>
+            <button type="button" class="format-btn px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200" data-cmd="justifyRight" title="Align Right">Right</button>
+            <span class="text-slate-700">|</span>
+            <button type="button" id="btn-insert-date" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">Insert Today's Date</button>
+            <button type="button" id="btn-insert-sig" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200">Insert Signature Area</button>
+          </div>
+
+          <!-- Document Canvas Sheet -->
+          <div id="printable-document" class="document-sheet">
+            <div id="formal-doc-canvas" contenteditable="true" class="outline-none min-h-[450px] font-mono text-sm leading-relaxed text-slate-900 whitespace-pre-line select-text">
+              <!-- Rendered document preview -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 33-35. VIEW: HISTORY & ARCHIVE ==================== -->
+      <section id="view-history" class="view-section hidden max-w-4xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white">History & Archive</h2>
+            <p class="text-sm text-slate-400">Search and filter your past explanations and formal documents.</p>
+          </div>
+
+          <!-- 34. Live Search Box -->
+          <div class="w-full sm:w-72">
+            <input type="text" id="history-search" placeholder="Search: assignment, meeting, doctor..." class="input-base text-sm">
+          </div>
+        </div>
+
+        <!-- 33 & 35. Filter Controls Grid -->
+        <div class="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-3">
+          <!-- Type Filter Tabs (All, Excuses, Documents, Favorites) -->
+          <div class="flex flex-wrap items-center gap-2 border-b border-slate-800/80 pb-3">
+            <button type="button" class="history-tab-btn pill-option active text-xs font-semibold px-3 py-1.5" data-tab="all">
+              All
+            </button>
+            <button type="button" class="history-tab-btn pill-option text-xs font-semibold px-3 py-1.5" data-tab="excuses">
+              Excuses
+            </button>
+            <button type="button" class="history-tab-btn pill-option text-xs font-semibold px-3 py-1.5" data-tab="documents">
+              Documents
+            </button>
+            <button type="button" class="history-tab-btn pill-option text-xs font-semibold px-3 py-1.5" data-tab="favorites">
+              ★ Favorites
+            </button>
+          </div>
+
+          <!-- 35. Detailed Dropdown Filters (Tone, Date) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div class="flex items-center gap-2">
+              <label for="history-filter-tone" class="text-xs text-slate-400 font-medium shrink-0">Tone:</label>
+              <select id="history-filter-tone" class="input-base text-xs py-1.5">
+                <option value="all">All Tones</option>
+                <option value="Professional">Professional</option>
+                <option value="Casual">Casual</option>
+                <option value="Funny">Funny</option>
+                <option value="Formal">Formal</option>
+                <option value="Apologetic">Apologetic</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <label for="history-filter-date" class="text-xs text-slate-400 font-medium shrink-0">Date:</label>
+              <select id="history-filter-date" class="input-base text-xs py-1.5">
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Container -->
+        <div id="history-items-list" class="space-y-3">
+          <!-- Populated dynamically with title, type, date, copy, favorite star, delete -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="history-empty-state" class="hidden p-12 text-center border border-dashed border-slate-800 rounded-xl space-y-3">
+          <p class="text-slate-400 text-sm font-medium">No records found matching your search or filters.</p>
+          <button data-nav="generator" class="btn-primary text-xs font-semibold px-4 py-2">Generate a New Explanation</button>
+        </div>
+      </section>
+
+      <!-- 36. VIEW: FAVORITES (Dedicated view) -->
+      <section id="view-favorites" class="view-section hidden max-w-4xl mx-auto space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold text-white">★ My Favorites</h2>
+          <p class="text-sm text-slate-400">Quickly access and copy your bookmarked explanations and documents.</p>
+        </div>
+
+        <div id="favorites-items-list" class="space-y-3">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div id="favorites-empty-state" class="hidden p-12 text-center border border-dashed border-slate-800 rounded-xl space-y-3">
+          <p class="text-slate-400 text-sm font-medium">No favorites saved yet. Click the ☆ icon on any excuse or document to bookmark it here.</p>
+          <button data-nav="generator" class="btn-primary text-xs font-semibold px-4 py-2">Create New Explanation</button>
+        </div>
+      </section>
+
+      <!-- ==================== 37-38. VIEW: PROFILE ==================== -->
+      <section id="view-profile" class="view-section hidden max-w-2xl mx-auto space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Profile</h2>
+          <p class="text-sm text-slate-400">Manage your user identity, avatar, and account details.</p>
+        </div>
+
+        <div class="p-8 rounded-2xl border border-slate-800 bg-slate-900/70 space-y-6">
+          <div class="flex items-center gap-5">
+            <img id="profile-avatar-display" src="" alt="Avatar" class="w-16 h-16 rounded-full border-2 border-slate-700 object-cover">
+            <div>
+              <h3 id="profile-name-display" class="text-lg font-bold text-white">User Name</h3>
+              <p class="text-xs text-slate-400">Account Type: <strong class="text-slate-200">User</strong></p>
+              <p id="profile-member-since" class="text-xs text-slate-400 mt-0.5">Member Since: August 2026</p>
+            </div>
+          </div>
+
+          <!-- 38. Profile Editing Form -->
+          <div class="space-y-4 pt-4 border-t border-slate-800">
+            <div>
+              <label for="profile-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Name</label>
+              <input type="text" id="profile-name" class="input-base">
+            </div>
+
+            <div>
+              <label for="profile-email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email</label>
+              <input type="email" id="profile-email" disabled class="input-base opacity-60 cursor-not-allowed">
+            </div>
+
+            <div>
+              <label for="profile-avatar-url" class="block text-xs font-semibold text-slate-300 mb-1.5">Profile Picture URL (Optional)</label>
+              <input type="url" id="profile-avatar-url" placeholder="https://..." class="input-base text-xs">
+            </div>
+
+            <button type="button" id="btn-save-profile" class="btn-primary py-2.5 px-5 font-semibold text-sm">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== 39 & 50. VIEW: SETTINGS ==================== -->
+      <section id="view-settings" class="view-section hidden max-w-2xl mx-auto space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold text-white">Settings</h2>
+          <p class="text-sm text-slate-400">Configure generation defaults, appearance themes, and account security.</p>
+        </div>
+
+        <!-- 39. General Settings -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/70 space-y-6">
+          <h3 class="text-base font-bold text-white">General</h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label for="setting-default-tone" class="block text-xs font-semibold text-slate-300 mb-1.5">Default Tone</label>
+              <select id="setting-default-tone" class="input-base text-xs">
+                <option value="Professional">Professional</option>
+                <option value="Formal">Formal</option>
+                <option value="Casual">Casual</option>
+                <option value="Friendly">Friendly</option>
+                <option value="Apologetic">Apologetic</option>
+                <option value="Funny">Funny</option>
+                <option value="Direct">Direct</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="setting-default-length" class="block text-xs font-semibold text-slate-300 mb-1.5">Default Length</label>
+              <select id="setting-default-length" class="input-base text-xs">
+                <option value="Very Short">Very Short</option>
+                <option value="Short">Short</option>
+                <option value="Medium">Medium</option>
+                <option value="Detailed">Detailed</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="setting-default-delivery" class="block text-xs font-semibold text-slate-300 mb-1.5">Default Delivery</label>
+              <select id="setting-default-delivery" class="input-base text-xs">
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Email">Email</option>
+                <option value="SMS">SMS</option>
+                <option value="In Person">In Person</option>
+                <option value="College Portal">College Portal</option>
+                <option value="Work Chat">Work Chat</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Appearance: Theme -->
+          <div class="pt-4 border-t border-slate-800">
+            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Appearance</h4>
+            <label class="block text-xs text-slate-400 mb-2">Theme:</label>
+            <div class="flex items-center gap-3">
+              <button type="button" class="theme-option-btn pill-option text-xs px-4 py-2" data-theme="light">
+                Light
+              </button>
+              <button type="button" class="theme-option-btn pill-option active text-xs px-4 py-2" data-theme="dark">
+                Dark
+              </button>
+              <button type="button" class="theme-option-btn pill-option text-xs px-4 py-2" data-theme="system">
+                System
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional Gemini API Key -->
+          <div class="pt-4 border-t border-slate-800">
+            <label for="setting-api-key" class="block text-xs font-semibold text-slate-300 mb-1.5">
+              Google Gemini API Key <span class="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <input type="password" id="setting-api-key" placeholder="Enter custom Gemini API key or leave blank" class="input-base font-mono text-xs">
+          </div>
+
+          <button type="button" id="btn-save-preferences" class="btn-primary py-2.5 px-5 font-semibold text-sm">
+            Save Preferences
+          </button>
+        </div>
+
+        <!-- Connected Accounts Card -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/70 space-y-4">
+          <h3 class="text-base font-bold text-white">Connected Accounts</h3>
+          <div class="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/60">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.8C6.5 7.1 9 5 12 5z"/>
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+                <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
+                <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+              </svg>
+              <div>
+                <p class="text-xs font-semibold text-white">Google Account</p>
+                <p id="google-conn-status" class="text-[11px] text-slate-400">Connected</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-blue-950 text-blue-300 border border-blue-800">Active</span>
+          </div>
+        </div>
+
+        <!-- Password Change Card -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-slate-800 bg-slate-900/70 space-y-4">
+          <h3 class="text-base font-bold text-white">Change Password</h3>
+
+          <div class="space-y-3">
+            <div>
+              <label for="pass-current" class="block text-xs font-semibold text-slate-300 mb-1">Current Password</label>
+              <input type="password" id="pass-current" placeholder="Current password" class="input-base">
+            </div>
+
+            <div>
+              <label for="pass-new" class="block text-xs font-semibold text-slate-300 mb-1">New Password</label>
+              <input type="password" id="pass-new" minlength="6" placeholder="Minimum 6 characters" class="input-base">
+            </div>
+
+            <div>
+              <label for="pass-confirm" class="block text-xs font-semibold text-slate-300 mb-1">Confirm New Password</label>
+              <input type="password" id="pass-confirm" minlength="6" placeholder="Confirm new password" class="input-base">
+            </div>
+          </div>
+
+          <button type="button" id="btn-change-password" class="btn-secondary py-2 px-4 font-semibold text-sm">
+            Update Password
+          </button>
+        </div>
+
+        <!-- 50. Privacy & Data Controls / Danger Zone -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-rose-900/50 bg-rose-950/20 space-y-4">
+          <h3 class="text-base font-bold text-rose-300">Privacy & Data Controls</h3>
+          <p class="text-xs text-slate-400">Permanently delete your generation history or account records.</p>
+
+          <div class="flex flex-wrap items-center gap-3 pt-2">
+            <button type="button" id="btn-delete-all-history" class="px-4 py-2 rounded-lg border border-rose-800 bg-rose-950/60 text-xs font-semibold text-rose-300 hover:bg-rose-900 transition-colors">
+              Delete All History
+            </button>
+            <button type="button" id="btn-delete-account" class="px-4 py-2 rounded-lg border border-rose-700 bg-rose-600 text-xs font-semibold text-white hover:bg-rose-700 transition-colors">
+              Delete Account
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: PRIVACY POLICY ==================== -->
+      <section id="view-privacy" class="view-section hidden max-w-3xl mx-auto py-8 space-y-6 text-slate-300">
+        <h2 class="text-3xl font-bold text-white">Privacy Policy</h2>
+        <p class="text-xs text-slate-400">Last updated: August 2026</p>
+        <p class="leading-relaxed">EXCUSE.AI respects your privacy. We process situation data strictly to produce contextual explanations. We do not sell your personal data or generated messages to third parties.</p>
+        <h3 class="text-lg font-bold text-white pt-2">Data Protection & Retention</h3>
+        <p class="leading-relaxed">All generated records and account sessions are stored securely and encrypted in transit. You have the full right to delete your explanation history or account at any time.</p>
+        <div class="pt-4">
+          <button data-nav="landing" class="btn-secondary text-sm">Back to Home</button>
+        </div>
+      </section>
+
+      <!-- ==================== VIEW: TERMS OF SERVICE ==================== -->
+      <section id="view-terms" class="view-section hidden max-w-3xl mx-auto py-8 space-y-6 text-slate-300">
+        <h2 class="text-3xl font-bold text-white">Terms of Service</h2>
+        <p class="text-xs text-slate-400">Last updated: August 2026</p>
+        <p class="leading-relaxed">By creating an account and utilizing EXCUSE.AI, you agree to use the generated communication materials responsibly for legitimate personal, academic, and workplace correspondence.</p>
+        <h3 class="text-lg font-bold text-white pt-2">User Conduct</h3>
+        <p class="leading-relaxed">Users agree not to utilize the platform for fraudulent misrepresentation or illegal endeavors.</p>
+        <div class="pt-4">
+          <button data-nav="landing" class="btn-secondary text-sm">Back to Home</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-8 px-4 text-center text-xs text-slate-400 mt-auto">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>&copy; 2026 EXCUSE.AI. All rights reserved.</p>
+      <div class="flex items-center gap-6">
+        <a href="#" data-nav="privacy" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
+        <a href="#" data-nav="terms" class="hover:text-slate-300 transition-colors">Terms of Service</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==================== MODAL: AI REWRITER ==================== -->
+  <div id="rewrite-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white">Refine & Rephrase Explanation</h3>
+        <button type="button" data-close-modal="rewrite-modal" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="p-3.5 rounded-lg border border-slate-800 bg-slate-950/80 text-xs text-slate-300 max-h-32 overflow-y-auto font-mono whitespace-pre-line" id="rewrite-original-text">
+        <!-- Original text -->
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-300 mb-2">Transformation Presets</label>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="quick-rewrite-pill text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700" data-instruction="Make it short, concise, and direct">
+            Make Shorter
+          </button>
+          <button type="button" class="quick-rewrite-pill text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700" data-instruction="Make it very formal, corporate, and executive">
+            More Formal
+          </button>
+          <button type="button" class="quick-rewrite-pill text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700" data-instruction="Make it deeply apologetic, sincere, and humble">
+            More Apologetic
+          </button>
+          <button type="button" class="quick-rewrite-pill text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700" data-instruction="Add plausible technical and logistical details">
+            Add Technical Details
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label for="rewrite-instruction" class="block text-xs font-semibold text-slate-300 mb-1.5">Custom Modification Prompt</label>
+        <input type="text" id="rewrite-instruction" placeholder="e.g. Express gratitude for patience, emphasize quick return" class="input-base text-sm">
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" data-close-modal="rewrite-modal" class="btn-ghost text-xs px-3 py-2">Cancel</button>
+        <button type="button" id="btn-submit-rewrite" class="btn-primary text-xs px-4 py-2 font-semibold">Apply Transformation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: GOOGLE ACCOUNT CHOOSER ==================== -->
+  <div id="google-account-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <div class="w-8 h-8 mx-auto mb-2 flex items-center justify-center">
+          <svg class="w-6 h-6" viewBox="0 0 24 24">
+            <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.8C6.5 7.1 9 5 12 5z"/>
+            <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
+            <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
+            <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
+          </svg>
+        </div>
+        <h3 class="text-base font-bold text-white">Sign in with Google</h3>
+        <p class="text-xs text-slate-400">Choose an account to continue to EXCUSE.AI</p>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <div class="google-account-option flex items-center gap-3 p-3 rounded-lg border border-slate-800 bg-slate-950/60 hover:bg-slate-800 cursor-pointer transition-colors"
+             data-name="Alex Mercer" data-email="alex.mercer@gmail.com" data-avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-8 h-8 rounded-full">
+          <div class="text-left">
+            <p class="text-xs font-semibold text-slate-200">Alex Mercer</p>
+            <p class="text-[11px] text-slate-400">alex.mercer@gmail.com</p>
+          </div>
+        </div>
+
+        <div class="google-account-option flex items-center gap-3 p-3 rounded-lg border border-slate-800 bg-slate-950/60 hover:bg-slate-800 cursor-pointer transition-colors"
+             data-name="Jordan Hayes" data-email="jordan.hayes@gmail.com" data-avatar="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-8 h-8 rounded-full">
+          <div class="text-left">
+            <p class="text-xs font-semibold text-slate-200">Jordan Hayes</p>
+            <p class="text-[11px] text-slate-400">jordan.hayes@gmail.com</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 text-center">
+        <button type="button" data-close-modal="google-account-modal" class="btn-ghost text-xs text-slate-400">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- Application Entry Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
