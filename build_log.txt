@@ -196,3 +196,4 @@
 [2026-08-25 19:35:57 +0530] refactor: improve active card highlight border on high-dpi displays
 [2026-08-26 13:22:17 +0530] perf: improve undo state stack management in document builder
 [2026-08-26 16:15:26 +0530] fix: enhance favorite star toggle animation feedback
+[2026-08-26 21:38:43 +0530] feat: enhance favorite star toggle animation feedback
