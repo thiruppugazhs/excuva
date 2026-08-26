@@ -22,6 +22,23 @@ class AppRouter {
     this.bindGlobalEvents();
     this.bindAuthForms();
 
+    // Check for Google OAuth callback token in URL hash or search params
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+    let urlToken = null;
+
+    if (hash.includes('google_token=')) {
+      urlToken = new URLSearchParams(hash.substring(hash.indexOf('?'))).get('google_token');
+    } else if (search.includes('google_token=')) {
+      urlToken = new URLSearchParams(search).get('google_token');
+    }
+
+    if (urlToken) {
+      const { api } = await import('./api.js');
+      api.setToken(urlToken);
+      window.history.replaceState(null, '', window.location.pathname + '#dashboard');
+    }
+
     // Check user auth state
     const user = await auth.init();
     if (user) {
@@ -301,51 +318,13 @@ class AppRouter {
       });
     }
 
-    // Google OAuth modal & buttons
+    // Google OAuth Direct Redirect
     document.querySelectorAll('.btn-google-auth').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const modal = document.getElementById('google-account-modal');
-        if (modal) {
-          modal.classList.remove('hidden');
-        } else {
-          auth.loginWithGoogle().then(() => this.navigate('dashboard'));
-        }
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/api/auth/google/login';
       });
     });
-
-    // Google Direct Auth Form inside modal
-    const googleAuthForm = document.getElementById('form-google-direct-auth');
-    if (googleAuthForm) {
-      googleAuthForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = document.getElementById('google-auth-name').value.trim();
-        const email = document.getElementById('google-auth-email').value.trim();
-        const modal = document.getElementById('google-account-modal');
-        if (modal) modal.classList.add('hidden');
-
-        try {
-          await auth.loginWithGoogle({ name, email });
-          this.navigate('dashboard');
-        } catch (err) {
-          showToast('Google sign-in failed', 'error');
-        }
-      });
-    }
-
-    // Direct Google Quick Connect
-    const btnGoogleQuick = document.getElementById('btn-google-quick-connect');
-    if (btnGoogleQuick) {
-      btnGoogleQuick.addEventListener('click', async () => {
-        const modal = document.getElementById('google-account-modal');
-        if (modal) modal.classList.add('hidden');
-        try {
-          await auth.loginWithGoogle();
-          this.navigate('dashboard');
-        } catch (err) {
-          showToast('Google sign-in failed', 'error');
-        }
-      });
-    }
 
     // Forgot Password Form (Requests 6-Digit OTP)
     const forgotForm = document.getElementById('form-forgot-password');

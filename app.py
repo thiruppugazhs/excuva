@@ -6,10 +6,12 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect
 from flask_cors import CORS
 import requests
 import base64
+import urllib.parse
+import secrets
 import database as db
 import ai_engine
 import storage
@@ -176,12 +178,122 @@ def login():
         }
     })
 
+@app.route('/api/auth/google/config', methods=['GET'])
+def get_google_config():
+    client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+    return jsonify({
+        'client_id': client_id
+    })
+
+@app.route('/api/auth/google/login', methods=['GET'])
+def google_login_redirect():
+    client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+    if not client_id:
+        return redirect("/#login?error=google_oauth_not_configured")
+
+    # Determine correct host and scheme (support reverse proxy / vercel headers)
+    host = request.headers.get('X-Forwarded-Host', request.host)
+    scheme = request.headers.get('X-Forwarded-Proto', 'https' if request.is_secure else 'http')
+    redirect_uri = f"{scheme}://{host}/api/auth/google/callback"
+    scope = 'openid email profile'
+    state = secrets.token_urlsafe(16)
+    
+    params = {
+        'response_type': 'code',
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'scope': scope,
+        'state': state,
+        'access_type': 'online',
+        'prompt': 'select_account'
+    }
+    auth_url = f"https://accounts.google.com/o/oauth2/v2/auth?{urllib.parse.urlencode(params)}"
+    return redirect(auth_url)
+
+@app.route('/api/auth/google/callback', methods=['GET'])
+def google_oauth_callback():
+    error = request.args.get('error')
+    if error:
+        return redirect(f"/#login?error={urllib.parse.quote(error)}")
+
+    code = request.args.get('code')
+    if not code:
+        return redirect("/#login?error=authorization_code_missing")
+
+    client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+    client_secret = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
+    host = request.headers.get('X-Forwarded-Host', request.host)
+    scheme = request.headers.get('X-Forwarded-Proto', 'https' if request.is_secure else 'http')
+    redirect_uri = f"{scheme}://{host}/api/auth/google/callback"
+
+    try:
+        # Exchange code for access token
+        token_resp = requests.post(
+            'https://oauth2.googleapis.com/token',
+            data={
+                'code': code,
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code'
+            },
+            timeout=10
+        )
+        token_data = token_resp.json()
+        access_token = token_data.get('access_token')
+
+        if not access_token:
+            print(f"[Google OAuth] Token exchange failed: {token_data}")
+            return redirect("/#login?error=token_exchange_failed")
+
+        # Fetch Google user profile
+        userinfo_resp = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10
+        )
+        userinfo = userinfo_resp.json()
+        email = userinfo.get('email', '').strip()
+        name = userinfo.get('name', 'Google User').strip()
+        avatar_url = userinfo.get('picture', '')
+
+        if not email:
+            return redirect("/#login?error=email_not_provided_by_google")
+
+        # Find or create user
+        user = db.get_user_by_email(email)
+        if not user:
+            user = db.create_user(name=name, email=email, auth_provider='google', avatar_url=avatar_url)
+            if not user:
+                return redirect("/#login?error=user_creation_failed")
+
+        token = db.create_session(user['id'], remember_me=True)
+        return redirect(f"/#dashboard?google_token={token}")
+
+    except Exception as e:
+        print(f"[Google OAuth] Exception: {e}")
+        return redirect(f"/#login?error={urllib.parse.quote(str(e))}")
+
 @app.route('/api/auth/google', methods=['POST'])
 def google_oauth():
     data = request.get_json() or {}
+    credential = data.get('credential', '').strip()
     email = data.get('email', '').strip()
     name = data.get('name', 'Google User').strip()
     avatar_url = data.get('avatar_url', '')
+
+    # If Google One-Tap credential (JWT ID Token) is provided, verify via Google tokeninfo
+    if credential:
+        try:
+            res = requests.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}", timeout=8)
+            if res.status_code == 200:
+                payload = res.json()
+                email = payload.get('email', '').strip()
+                name = payload.get('name', 'Google User').strip()
+                avatar_url = payload.get('picture', '')
+        except Exception as e:
+            print(f"[Google ID Token Verification Error] {e}")
 
     if not email:
         return jsonify({'error': 'Google authentication failed: Email not provided.'}), 400
