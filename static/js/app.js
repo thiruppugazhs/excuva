@@ -257,9 +257,60 @@ class AppRouter {
     }
   }
 
-  bindAuthForms() {
-    // Pending registration state for OTP verification
-    let pendingRegData = null;
+    // Helper to wire Orbital OTP digit slots
+    const setupOrbitalSlots = (containerSelector, hiddenInputId) => {
+      const container = document.querySelector(containerSelector);
+      const hiddenInput = document.getElementById(hiddenInputId);
+      if (!container || !hiddenInput) return;
+
+      const slots = container.querySelectorAll('.orbit-slot-input');
+
+      const updateHiddenValue = () => {
+        let code = '';
+        slots.forEach(slot => {
+          code += slot.value || '';
+          slot.classList.toggle('filled', !!slot.value);
+        });
+        hiddenInput.value = code;
+      };
+
+      slots.forEach((slot, idx) => {
+        slot.addEventListener('input', (e) => {
+          const val = e.target.value.replace(/\D/g, '');
+          slot.value = val ? val[val.length - 1] : '';
+          updateHiddenValue();
+
+          if (slot.value && idx < slots.length - 1) {
+            slots[idx + 1].focus();
+            slots[idx + 1].select();
+          }
+        });
+
+        slot.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !slot.value && idx > 0) {
+            slots[idx - 1].focus();
+            slots[idx - 1].value = '';
+            updateHiddenValue();
+          }
+        });
+
+        slot.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+          if (pasteData) {
+            for (let i = 0; i < slots.length; i++) {
+              slots[i].value = pasteData[i] || '';
+            }
+            updateHiddenValue();
+            const lastFilled = Math.min(pasteData.length, slots.length) - 1;
+            if (lastFilled >= 0) slots[lastFilled].focus();
+          }
+        });
+      });
+    };
+
+    setupOrbitalSlots('.reg-orbit-slots', 'reg-otp-code');
+    setupOrbitalSlots('.reset-orbit-slots', 'reset-otp-code');
 
     // Register Form - Step 1: Send OTP
     const registerForm = document.getElementById('form-register');
@@ -279,22 +330,35 @@ class AppRouter {
 
         try {
           pendingRegData = { name, email, password, confirm_password, terms_accepted };
-          await auth.sendRegistrationOtp(pendingRegData);
+          const res = await auth.sendRegistrationOtp(pendingRegData);
           registerForm.classList.add('hidden');
           if (registerOtpForm) {
             registerOtpForm.classList.remove('hidden');
             const emailDisplay = document.getElementById('reg-otp-email-display');
             if (emailDisplay) emailDisplay.textContent = email;
-            const otpInput = document.getElementById('reg-otp-code');
-            if (otpInput) {
-              otpInput.value = '';
-              otpInput.focus();
-            }
+            const slots = registerOtpForm.querySelectorAll('.orbit-slot-input');
+            slots.forEach(s => { s.value = ''; s.classList.remove('filled'); });
+            const hiddenOtp = document.getElementById('reg-otp-code');
+            if (hiddenOtp) hiddenOtp.value = '';
+            if (slots.length > 0) slots[0].focus();
           }
         } catch (err) {
           showToast(err.message, 'error');
         } finally {
           if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+    }
+
+    // Resend registration OTP button
+    const btnResendReg = document.getElementById('btn-resend-reg-otp');
+    if (btnResendReg) {
+      btnResendReg.addEventListener('click', async () => {
+        if (!pendingRegData) return;
+        try {
+          await auth.sendRegistrationOtp(pendingRegData);
+        } catch (err) {
+          showToast(err.message, 'error');
         }
       });
     }
@@ -310,6 +374,11 @@ class AppRouter {
           showToast('Registration details missing. Please start over.', 'error');
           registerOtpForm.classList.add('hidden');
           if (registerForm) registerForm.classList.remove('hidden');
+          return;
+        }
+
+        if (!otp_code || otp_code.length !== 6) {
+          showToast('Please enter all 6 verification digits.', 'error');
           return;
         }
 
@@ -385,7 +454,12 @@ class AppRouter {
           await auth.forgotPassword(email);
           const resetEmailInput = document.getElementById('reset-email-input');
           if (resetEmailInput) resetEmailInput.value = email;
+          const slots = document.querySelectorAll('.reset-orbit-slots .orbit-slot-input');
+          slots.forEach(s => { s.value = ''; s.classList.remove('filled'); });
+          const hiddenOtp = document.getElementById('reset-otp-code');
+          if (hiddenOtp) hiddenOtp.value = '';
           this.navigate('reset-password');
+          if (slots.length > 0) setTimeout(() => slots[0].focus(), 150);
         } catch (err) {
           showToast(err.message, 'error');
         } finally {

@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Excuva — Intelligent Contextual Explanation & Supporting Document Platform</title>
   
+  <!-- App Icon & Favicon -->
+  <link rel="icon" type="image/png" href="img/excuva-app-icon.png">
+  <link rel="apple-touch-icon" href="img/excuva-app-icon.png">
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -44,11 +48,9 @@
   <header id="public-header" class="border-b border-stone-200 bg-white/90 backdrop-blur sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center gap-8">
-        <a href="#" data-nav="landing" class="flex items-center gap-2.5 group">
-          <div class="w-8 h-8 rounded-lg bg-amber-900 flex items-center justify-center font-bold text-white shadow-sm group-hover:bg-amber-800 transition-colors font-mono">
-            E
-          </div>
-          <span class="font-black text-xl tracking-tight text-stone-900">Excuva</span>
+        <a href="#" data-nav="landing" class="flex items-center gap-3 group">
+          <img src="img/excuva-app-icon.png" alt="Excuva Icon" class="w-8 h-8 rounded-xl object-contain shadow-xs">
+          <img src="img/excuva-name-logo.jpg" alt="Excuva" class="h-6 sm:h-7 w-auto object-contain">
         </a>
 
         <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-stone-600">
@@ -79,9 +81,7 @@
           </svg>
         </button>
         <a href="#" data-nav="dashboard" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-amber-800 text-white flex items-center justify-center font-black text-base shadow-xs">
-            E
-          </div>
+          <img src="img/excuva-app-icon.png" alt="Excuva Icon" class="w-8 h-8 rounded-xl object-contain shadow-xs">
           <span class="font-black text-xl tracking-tight text-stone-900">Excuva</span>
         </a>
       </div>
@@ -115,9 +115,7 @@
       <!-- Mobile Drawer Top Bar with Brand and Close Button -->
       <div class="flex md:hidden items-center justify-between pb-4 mb-4 border-b border-stone-200">
         <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded-lg bg-amber-800 text-white flex items-center justify-center font-bold text-sm">
-            E
-          </div>
+          <img src="img/excuva-app-icon.png" alt="Excuva Icon" class="w-7 h-7 rounded-lg object-contain">
           <span class="font-bold text-base text-stone-900">Excuva</span>
         </div>
         <button type="button" id="btn-close-sidebar" class="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-200/60" title="Close Navigation">
@@ -210,6 +208,10 @@
         
         <!-- Hero Section -->
         <div class="text-center max-w-3xl mx-auto space-y-6">
+          <div class="flex items-center justify-center mb-4">
+            <img src="img/excuva-name-logo.jpg" alt="Excuva Logo" class="h-14 sm:h-20 w-auto object-contain rounded-2xl shadow-sm border border-stone-200/80">
+          </div>
+
           <h1 class="text-4xl sm:text-6xl font-black tracking-tight text-stone-900 leading-tight">
             Turn difficult situations into <br class="hidden sm:block">
             <span class="text-amber-800">believable, clear explanations</span>
@@ -464,24 +466,50 @@
             </button>
           </form>
 
-          <!-- OTP Verification Step 2 -->
-          <form id="form-register-otp" class="hidden space-y-4 pt-2">
-            <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900">
-              <p class="font-bold">Verification code dispatched!</p>
-              <p class="mt-0.5 text-stone-600">Enter the 6-digit code sent to <span id="reg-otp-email-display" class="font-bold text-stone-900"></span></p>
+          <!-- OTP Verification Step 2 (Orbital Design V3) -->
+          <form id="form-register-otp" class="hidden space-y-4 pt-1 text-center">
+            <div class="space-y-1">
+              <h3 class="text-xl font-extrabold text-stone-900">Verify your email</h3>
+              <p class="text-xs text-stone-500">
+                Enter the 6-digit code sent to <br><span id="reg-otp-email-display" class="font-bold text-stone-900"></span>
+              </p>
             </div>
 
-            <div>
-              <label for="reg-otp-code" class="block text-xs font-semibold text-stone-700 mb-1.5">6-Digit Verification Code</label>
-              <input type="text" id="reg-otp-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" class="input-base text-center font-mono text-xl tracking-widest font-bold">
+            <!-- Orbital Ring Component (Component 89) -->
+            <div class="orbit-container my-4 relative flex items-center justify-center mx-auto" style="width: 230px; height: 230px;">
+              <!-- Dotted Orbital SVG Track -->
+              <svg class="orbit__ring absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 240 240">
+                <circle cx="120" cy="120" r="86" class="orbit__path" fill="none" stroke="#d8cbba" stroke-width="1.5" stroke-dasharray="3 6" />
+              </svg>
+              
+              <!-- Center Hub Dot -->
+              <div class="orbit__hub absolute w-3.5 h-3.5 rounded-full bg-amber-800 shadow-[0_0_10px_rgba(133,77,14,0.6)] z-10"></div>
+              
+              <!-- 6 Orbital Input Slots -->
+              <div class="orbit-slots-group reg-orbit-slots absolute inset-0 flex items-center justify-center">
+                <input type="text" maxlength="1" inputmode="numeric" autocomplete="one-time-code" data-index="0" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(0px, -86px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="1" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(74px, -43px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="2" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(74px, 43px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="3" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(0px, 86px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="4" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(-74px, 43px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="5" class="orbit-slot-input absolute w-11 h-12 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(-74px, -43px);" />
+              </div>
             </div>
 
-            <button type="submit" id="btn-verify-reg-otp" class="btn-primary w-full py-2.5 font-bold">
+            <!-- Hidden actual value container synced with slots -->
+            <input type="hidden" id="reg-otp-code" required>
+
+            <p class="text-xs text-stone-500">
+              Didn't receive the code? 
+              <button type="button" id="btn-resend-reg-otp" class="text-amber-800 font-bold hover:underline">Resend code</button>
+            </p>
+
+            <button type="submit" id="btn-verify-reg-otp" class="btn-primary w-full py-2.5 font-bold shadow-md">
               Verify Code & Activate Account
             </button>
 
             <button type="button" id="btn-back-to-reg" class="w-full btn-ghost text-xs text-stone-500 font-semibold">
-              ← Edit details / Resend code
+              ← Edit details / Go back
             </button>
           </form>
 
@@ -589,34 +617,49 @@
 
       <!-- ==================== VIEW: RESET PASSWORD (OTP) ==================== -->
       <section id="view-reset-password" class="view-section hidden py-8 max-w-md mx-auto">
-        <div class="p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-6">
-          <div class="text-center space-y-2">
+        <div class="p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-5">
+          <div class="text-center space-y-1">
             <h2 class="text-2xl font-extrabold text-stone-900 tracking-tight">Verify & Reset Password</h2>
-            <p class="text-xs text-stone-500">Enter the 6-digit code dispatched to your email and your new password.</p>
+            <p class="text-xs text-stone-500">Enter the 6-digit code sent to your email and your new password.</p>
           </div>
 
           <form id="form-reset-password" class="space-y-4">
             <div>
-              <label for="reset-email-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Email Address</label>
+              <label for="reset-email-input" class="block text-xs font-semibold text-stone-700 mb-1">Email Address</label>
               <input type="email" id="reset-email-input" required placeholder="alex@example.com" class="input-base">
             </div>
 
-            <div>
-              <label for="reset-otp-code" class="block text-xs font-semibold text-stone-700 mb-1.5">6-Digit Verification Code</label>
-              <input type="text" id="reset-otp-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" class="input-base text-center font-mono text-xl tracking-widest font-bold">
+            <!-- Orbital OTP Ring for Reset Password -->
+            <div class="orbit-container my-3 relative flex items-center justify-center mx-auto" style="width: 220px; height: 220px;">
+              <svg class="orbit__ring absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 240 240">
+                <circle cx="120" cy="120" r="86" class="orbit__path" fill="none" stroke="#d8cbba" stroke-width="1.5" stroke-dasharray="3 6" />
+              </svg>
+              <div class="orbit__hub absolute w-3.5 h-3.5 rounded-full bg-amber-800 shadow-[0_0_10px_rgba(133,77,14,0.6)] z-10"></div>
+              
+              <div class="orbit-slots-group reset-orbit-slots absolute inset-0 flex items-center justify-center">
+                <input type="text" maxlength="1" inputmode="numeric" autocomplete="one-time-code" data-index="0" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(0px, -84px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="1" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(72px, -42px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="2" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(72px, 42px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="3" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(0px, 84px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="4" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(-72px, 42px);" />
+                <input type="text" maxlength="1" inputmode="numeric" data-index="5" class="orbit-slot-input absolute w-10 h-11 rounded-xl border border-stone-300 bg-white text-center text-lg font-bold font-mono text-stone-900 shadow-xs focus:border-amber-800 focus:ring-2 focus:ring-amber-800/20 focus:outline-none transition-all" style="transform: translate(-72px, -42px);" />
+              </div>
             </div>
 
+            <!-- Hidden actual value container synced with slots -->
+            <input type="hidden" id="reset-otp-code" required>
+
             <div>
-              <label for="reset-new-password" class="block text-xs font-semibold text-stone-700 mb-1.5">New Password</label>
+              <label for="reset-new-password" class="block text-xs font-semibold text-stone-700 mb-1">New Password</label>
               <input type="password" id="reset-new-password" required minlength="6" placeholder="Minimum 6 characters" class="input-base">
             </div>
 
             <div>
-              <label for="reset-confirm-password" class="block text-xs font-semibold text-stone-700 mb-1.5">Confirm New Password</label>
+              <label for="reset-confirm-password" class="block text-xs font-semibold text-stone-700 mb-1">Confirm New Password</label>
               <input type="password" id="reset-confirm-password" required minlength="6" placeholder="Repeat new password" class="input-base">
             </div>
 
-            <button type="submit" id="btn-reset-submit" class="btn-primary w-full py-2.5 font-bold">
+            <button type="submit" id="btn-reset-submit" class="btn-primary w-full py-2.5 font-bold shadow-md">
               Verify Code & Update Password
             </button>
           </form>
@@ -624,8 +667,6 @@
           <p class="text-center text-xs text-stone-500">
             <a href="#" data-nav="forgot-password" class="text-amber-800 font-bold hover:underline">← Request a new code</a>
           </p>
-        </div>
-      </section>
         </div>
       </section>
 
@@ -636,7 +677,6 @@
           <div>
             <div class="flex items-center gap-2.5">
               <h2 id="dash-greeting" class="text-2xl sm:text-3xl font-extrabold text-stone-900">Good morning 👋</h2>
-              <span id="dash-user-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-200">Account Active</span>
             </div>
             <p class="text-sm text-stone-600 mt-1">What communication do you need to draft today?</p>
           </div>
@@ -1595,58 +1635,9 @@
             </div>
           </div>
 
-          <!-- Optional Gemini API Key -->
-          <div class="pt-4 border-t border-stone-200">
-            <label for="setting-api-key" class="block text-xs font-semibold text-stone-700 mb-1.5">
-              Custom Google Gemini API Key <span class="text-stone-400 font-normal">(Optional)</span>
-            </label>
-            <input type="password" id="setting-api-key" placeholder="Enter custom Gemini API key or leave blank" class="input-base font-mono text-xs">
-          </div>
-
-          <button type="button" id="btn-save-preferences" class="btn-primary py-2.5 px-5 font-bold text-sm">
+          <button type="button" id="btn-save-preferences" class="btn-primary py-2.5 px-5 font-bold text-sm mt-2">
             Save Preferences
           </button>
-        </div>
-
-        <!-- Connected Accounts & OAuth Setup Card -->
-        <div class="p-6 sm:p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-bold text-stone-900">OAuth & Connected Accounts</h3>
-            <button type="button" id="btn-toggle-oauth-guide" class="text-xs font-bold text-amber-800 hover:underline">
-              OAuth URLs & Setup Guide ↗
-            </button>
-          </div>
-
-          <div class="flex items-center justify-between p-3.5 rounded-2xl border border-stone-200 bg-stone-50">
-            <div class="flex items-center gap-3">
-              <svg class="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.8C6.5 7.1 9 5 12 5z"/>
-                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/>
-                <path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 10.8 0 12s.7 2.3 1.9 4.7l3.7-2.9z"/>
-                <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
-              </svg>
-              <div>
-                <p class="text-xs font-bold text-stone-900">Google OAuth 2.0</p>
-                <p id="google-conn-status" class="text-[11px] text-stone-500">Connected for one-click authorization</p>
-              </div>
-            </div>
-            <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Active</span>
-          </div>
-
-          <!-- OAuth Setup Info Box -->
-          <div id="oauth-setup-box" class="p-4 rounded-2xl border border-amber-200 bg-amber-50/70 text-xs text-stone-800 space-y-2.5">
-            <h4 class="font-bold text-amber-950">Creating your Google OAuth 2.0 Client ID</h4>
-            <p class="leading-relaxed">1. Open the <strong>Google Cloud Console Credentials</strong> page: <br><a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-amber-800 font-mono font-bold hover:underline">https://console.cloud.google.com/apis/credentials</a></p>
-            <p class="leading-relaxed">2. Click <strong>Create Credentials → OAuth Client ID</strong> (Application type: <em>Web application</em>).</p>
-            <div class="space-y-1 bg-white p-3 rounded-xl border border-stone-200 font-mono text-[11px]">
-              <p class="text-stone-500 font-bold">Authorized JavaScript Origins:</p>
-              <p class="text-amber-900 select-all font-semibold">https://excuva.thiruppugazhs.in</p>
-              <p class="text-stone-600 select-all">http://localhost:5000</p>
-              <p class="text-stone-500 font-bold mt-2">Authorized Redirect URIs:</p>
-              <p class="text-amber-900 select-all font-semibold">https://excuva.thiruppugazhs.in/api/auth/google/callback</p>
-              <p class="text-stone-600 select-all">http://localhost:5000/api/auth/google/callback</p>
-            </div>
-          </div>
         </div>
 
         <!-- Password Change Card with OTP Protection -->

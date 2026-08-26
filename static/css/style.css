@@ -342,6 +342,61 @@ code, pre, .font-mono {
 }
 
 /* ==========================================================================
+   Orbital OTP Verification Component (Component 89)
+   ========================================================================== */
+.orbit-container {
+  user-select: none;
+}
+
+.orbit__path {
+  stroke: var(--border-medium);
+  stroke-dasharray: 4 8;
+  stroke-width: 1.5;
+  opacity: 0.9;
+  animation: orbitPulse 6s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes orbitPulse {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.orbit__hub {
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px rgba(133, 77, 14, 0.6), 0 0 20px rgba(133, 77, 14, 0.2);
+  animation: hubGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes hubGlow {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.15); opacity: 1; }
+}
+
+.orbit-slot-input {
+  border: 1.5px solid var(--border-medium);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(60, 36, 21, 0.06);
+}
+
+.orbit-slot-input:focus {
+  border-color: var(--accent-primary);
+  background-color: #ffffff;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-surface), 0 6px 16px rgba(133, 77, 14, 0.15);
+  transform: translate(var(--tw-translate-x, 0), var(--tw-translate-y, 0)) scale(1.08) !important;
+  z-index: 20;
+}
+
+.orbit-slot-input.filled {
+  border-color: var(--accent-primary);
+  background-color: var(--bg-card);
+  color: var(--accent-hover);
+}
+
+/* ==========================================================================
    Responsive Adaptations (Mobile, Tablet, Laptop)
    ========================================================================== */
 
