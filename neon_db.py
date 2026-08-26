@@ -119,6 +119,8 @@ def init_neon_db():
                     verified INTEGER DEFAULT 0,
                     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
                 );
+
+                UPDATE user_settings SET theme_preference = 'light' WHERE theme_preference = 'dark' OR theme_preference = 'system' OR theme_preference IS NULL;
             ''')
             conn.commit()
             print("[Neon DB] Schema initialized successfully.")

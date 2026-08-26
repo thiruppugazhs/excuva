@@ -760,7 +760,7 @@ def handle_settings():
     data = request.get_json() or {}
     default_tone = data.get('default_tone', 'Professional')
     default_recipient = data.get('default_recipient', 'Manager')
-    theme_preference = data.get('theme_preference', 'dark')
+    theme_preference = data.get('theme_preference', 'light')
     custom_api_key = data.get('custom_api_key', None)
 
     if custom_api_key is not None and custom_api_key.strip() == '':

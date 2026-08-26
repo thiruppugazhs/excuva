@@ -9,8 +9,8 @@ export class ProfileSettingsManager {
 
   init() {
     this.bindEvents();
-    const savedTheme = localStorage.getItem('excuse_ai_theme');
-    this.applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+    // Always start strictly in light theme
+    this.applyTheme('light');
   }
 
   bindEvents() {
@@ -20,7 +20,7 @@ export class ProfileSettingsManager {
         document.querySelectorAll('.theme-option-btn').forEach(b => b.classList.remove('active'));
         e.currentTarget.classList.add('active');
         const theme = e.currentTarget.dataset.theme;
-        this.applyTheme(theme);
+        this.applyTheme(theme === 'dark' ? 'dark' : 'light');
       });
     });
 
@@ -69,18 +69,16 @@ export class ProfileSettingsManager {
   }
 
   applyTheme(theme) {
-    if (!theme || theme === 'system') {
-      theme = 'light';
-    }
-
-    if (theme === 'dark') {
+    const isDark = theme === 'dark';
+    if (isDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
       document.body.classList.remove('bg-[#fbf9f5]', 'text-stone-900');
+      localStorage.setItem('excuse_ai_theme', 'dark');
     } else {
       document.documentElement.removeAttribute('data-theme');
       document.body.classList.add('bg-[#fbf9f5]', 'text-stone-900');
+      localStorage.setItem('excuse_ai_theme', 'light');
     }
-    localStorage.setItem('excuse_ai_theme', theme);
   }
 
   async loadSettings() {
