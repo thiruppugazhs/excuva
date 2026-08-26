@@ -48,6 +48,32 @@ def send_email_via_resend(to_email, subject, html_content):
         print(f"[Resend] Email dispatch exception: {e}")
         return False
 
+def send_otp_email(to_email, otp_code, purpose="account_verification", name="User"):
+    if purpose == "account_verification":
+        subject = f"{otp_code} is your Excuva verification code"
+        title = "Verify Your Excuva Account"
+        msg = f"Thank you for signing up for Excuva. Please use the 6-digit verification code below to activate your account:"
+    else:
+        subject = f"{otp_code} is your Excuva password verification code"
+        title = "Excuva Password Verification Code"
+        msg = f"We received a request to change/reset the password for your Excuva account. Enter the 6-digit code below to proceed:"
+
+    email_html = f"""
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; background: #fbf9f5; border: 1px solid #e8dfd3; border-radius: 16px; color: #1c1815;">
+      <h2 style="color: #854d0e; margin: 0 0 16px; font-size: 24px; font-weight: 800;">Excuva</h2>
+      <h3 style="color: #1c1815; margin: 0 0 12px; font-size: 18px;">{title}</h3>
+      <p style="color: #574e46; line-height: 1.6; font-size: 14px;">Hello {name},</p>
+      <p style="color: #574e46; line-height: 1.6; font-size: 14px;">{msg}</p>
+      <div style="text-align: center; margin: 28px 0;">
+        <div style="display: inline-block; background-color: #f6efe6; border: 2px dashed #b45309; padding: 14px 32px; border-radius: 12px; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #78350f; font-family: monospace;">
+          {otp_code}
+        </div>
+      </div>
+      <p style="color: #8c8075; font-size: 12px; line-height: 1.5; text-align: center;">This verification code is valid for 10 minutes. If you did not make this request, you can safely ignore this message.</p>
+    </div>
+    """
+    return send_email_via_resend(to_email, subject, email_html)
+
 def get_auth_user():
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
@@ -178,6 +204,64 @@ def google_oauth():
         }
     })
 
+@app.route('/api/auth/send-registration-otp', methods=['POST'])
+def send_registration_otp():
+    data = request.get_json() or {}
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+
+    if not name:
+        return jsonify({'error': 'Full name is required.'}), 400
+    if not email or not is_valid_email(email):
+        return jsonify({'error': 'Please provide a valid email address.'}), 400
+    if db.get_user_by_email(email):
+        return jsonify({'error': 'An account with this email address already exists.'}), 400
+    if not password or len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters in length.'}), 400
+
+    otp_code = db.create_otp_code(email, purpose='account_verification')
+    send_otp_email(email, otp_code, purpose='account_verification', name=name)
+
+    return jsonify({
+        'message': f'A 6-digit verification code has been dispatched to {email}.',
+        'email': email,
+        'debug_otp': otp_code
+    })
+
+@app.route('/api/auth/verify-registration-otp', methods=['POST'])
+def verify_registration_otp():
+    data = request.get_json() or {}
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    otp_code = data.get('otp_code', '').strip()
+
+    if not email or not otp_code:
+        return jsonify({'error': 'Email and verification code are required.'}), 400
+
+    verified, msg, _ = db.verify_otp_code(email, otp_code, purpose='account_verification')
+    if not verified:
+        return jsonify({'error': msg}), 400
+
+    user = db.get_user_by_email(email)
+    if not user:
+        user = db.create_user(name=name or 'User', email=email, password=password, auth_provider='email')
+        if not user:
+            return jsonify({'error': 'Failed to create user account.'}), 500
+
+    token = db.create_session(user['id'], remember_me=True)
+    return jsonify({
+        'message': 'Account verified and created successfully.',
+        'token': token,
+        'user': {
+            'id': user['id'],
+            'name': user['name'],
+            'email': user['email'],
+            'avatar_url': user.get('avatar_url')
+        }
+    }), 201
+
 @app.route('/api/auth/forgot-password', methods=['POST'])
 def forgot_password():
     data = request.get_json() or {}
@@ -187,50 +271,75 @@ def forgot_password():
         return jsonify({'error': 'Please enter a valid email address.'}), 400
 
     user = db.get_user_by_email(email)
-    reset_token = None
+    otp_code = None
     if user:
-        reset_token = db.create_password_reset_token(user['id'])
-        reset_url = request.host_url.rstrip('/') + f"/#reset-password?token={reset_token}"
-        email_html = f"""
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 540px; margin: 0 auto; padding: 32px; background: #faf8f5; border: 1px solid #e7e0d8; border-radius: 16px; color: #292524;">
-          <h2 style="color: #78350f; margin: 0 0 16px; font-size: 22px;">Excuva</h2>
-          <h3 style="color: #1c1917; margin: 0 0 12px; font-size: 18px;">Password Reset Request</h3>
-          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">Hello {user.get('name', 'User')},</p>
-          <p style="color: #57534e; line-height: 1.6; font-size: 14px;">We received a request to reset the password for your Excuva account. Click the button below to choose a new password:</p>
-          <div style="text-align: center; margin: 28px 0;">
-            <a href="{reset_url}" style="background-color: #92400e; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px; display: inline-block;">Reset Password</a>
-          </div>
-          <p style="color: #78716c; font-size: 12px; line-height: 1.5;">If the button above does not work, copy and paste this link into your browser:<br><a href="{reset_url}" style="color: #b45309;">{reset_url}</a></p>
-          <p style="color: #a8a29e; font-size: 11px; margin-top: 24px; border-top: 1px solid #e7e0d8; padding-top: 12px;">If you did not request this change, you can safely ignore this email.</p>
-        </div>
-        """
-        send_email_via_resend(email, "Reset Your Excuva Password", email_html)
+        otp_code = db.create_otp_code(email, purpose='password_reset', user_id=user['id'])
+        send_otp_email(email, otp_code, purpose='password_reset', name=user.get('name', 'User'))
 
-    # Security best practice: Consistent response whether account exists or not
     return jsonify({
-        'message': 'If an account exists with that email address, a password reset link has been dispatched.',
-        'debug_reset_token': reset_token # Provided for local interactive testing
+        'message': f'If an account exists for {email}, a 6-digit password verification code has been dispatched.',
+        'email': email,
+        'debug_otp': otp_code
     })
 
-@app.route('/api/auth/reset-password', methods=['POST'])
-def reset_password():
+@app.route('/api/auth/reset-password-otp', methods=['POST'])
+def reset_password_otp():
     data = request.get_json() or {}
-    token = data.get('token', '').strip()
+    email = data.get('email', '').strip()
+    otp_code = data.get('otp_code', '').strip()
     new_password = data.get('new_password', '')
     confirm_password = data.get('confirm_password', '')
 
-    if not token:
-        return jsonify({'error': 'Reset token is required.'}), 400
+    if not email or not otp_code:
+        return jsonify({'error': 'Email and verification code are required.'}), 400
     if not new_password or len(new_password) < 6:
         return jsonify({'error': 'New password must be at least 6 characters.'}), 400
     if new_password != confirm_password:
         return jsonify({'error': 'Passwords do not match.'}), 400
 
-    success = db.verify_and_consume_reset_token(token, new_password)
+    success, msg = db.reset_password_with_otp(email, otp_code, new_password)
     if not success:
-        return jsonify({'error': 'Invalid or expired password reset link. Please request a new one.'}), 400
+        return jsonify({'error': msg}), 400
 
-    return jsonify({'message': 'Password has been successfully updated. You may now log in.'})
+    return jsonify({'message': msg})
+
+@app.route('/api/user/request-password-otp', methods=['POST'])
+def user_request_password_otp():
+    user = get_auth_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    otp_code = db.create_otp_code(user['email'], purpose='password_reset', user_id=user['id'])
+    send_otp_email(user['email'], otp_code, purpose='password_reset', name=user.get('name', 'User'))
+
+    return jsonify({
+        'message': f'A 6-digit security code has been dispatched to {user["email"]}.',
+        'debug_otp': otp_code
+    })
+
+@app.route('/api/user/verify-password-otp', methods=['POST'])
+def user_verify_password_otp():
+    user = get_auth_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.get_json() or {}
+    otp_code = data.get('otp_code', '').strip()
+    new_password = data.get('new_password', '')
+    confirm_password = data.get('confirm_password', '')
+
+    if not otp_code:
+        return jsonify({'error': 'Verification code is required.'}), 400
+    if not new_password or len(new_password) < 6:
+        return jsonify({'error': 'New password must be at least 6 characters.'}), 400
+    if new_password != confirm_password:
+        return jsonify({'error': 'Passwords do not match.'}), 400
+
+    success, msg = db.reset_password_with_otp(user['email'], otp_code, new_password)
+    if not success:
+        return jsonify({'error': msg}), 400
+
+    return jsonify({'message': 'Your password has been updated securely.'})
 
 @app.route('/api/auth/me', methods=['GET'])
 def get_current_user():

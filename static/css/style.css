@@ -340,3 +340,50 @@ code, pre, .font-mono {
     transform: translateY(0);
   }
 }
+
+/* ==========================================================================
+   Responsive Adaptations (Mobile, Tablet, Laptop)
+   ========================================================================== */
+
+/* Mobile Handsets (< 640px) */
+@media (max-width: 639px) {
+  .document-sheet {
+    padding: 1.25rem;
+    font-size: 0.875rem;
+  }
+  
+  #formal-doc-canvas {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+  }
+
+  .view-section {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  #toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .toast {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+/* Tablets (640px to 1023px) */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .document-sheet {
+    padding: 2rem;
+  }
+}
+
+/* High-resolution Laptops & Desktops (>= 1024px) */
+@media (min-width: 1024px) {
+  #app-sidebar {
+    display: block !important;
+  }
+}

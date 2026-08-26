@@ -302,90 +302,158 @@ def rewrite_excuse_contextual(original_text, instruction, user_name="Alex"):
 
 def generate_formal_document_content(doc_type, title, recipient, issue_date, reason, additional_details, user_name):
     """
-    Legitimate formal document generator for Part 3:
-    Types:
-    - Explanation Letter
-    - Personal Declaration
-    - Leave Request
-    - Delay Notification
-    - Appointment Request
-    - Incident Explanation
-    - Extension Request
-    - Absence Explanation
-    - Other
+    Enhanced legitimate formal document generator:
+    Produces comprehensive, multi-paragraph, professional, and believable proof documents.
     """
     date_str = issue_date or datetime.now().strftime('%d %B %Y')
-    rec_str = recipient or "Recipient"
-    reason_str = reason or "an unexpected personal circumstance"
-    
-    # Document Type Phrasing
+    rec_str = recipient or "Designated Authority / Office of Record"
+    reason_str = reason or "an unforeseen personal and logistical emergency"
+    user_str = user_name or "Applicant"
+    ref_num = f"EXCV-{datetime.now().strftime('%Y%m')}-{random.randint(10482, 98741)}"
+
+    # Document Type Phrasing & Titles
     type_headers = {
-        'Extension Request': 'ASSIGNMENT & DEADLINE EXTENSION REQUEST',
-        'Explanation Letter': 'FORMAL WRITTEN EXPLANATION LETTER',
-        'Personal Declaration': 'PERSONAL DECLARATION OF RECORD',
-        'Leave Request': 'FORMAL LEAVE & ABSENCE REQUEST',
-        'Delay Notification': 'OFFICIAL SCHEDULE DELAY NOTIFICATION',
-        'Appointment Request': 'FORMAL RESCHEDULING & APPOINTMENT REQUEST',
-        'Incident Explanation': 'FORMAL STATEMENT OF UNFORESEEN INCIDENT',
-        'Absence Explanation': 'NOTICE OF UNAVOIDABLE ABSENCE & EXPLANATION',
-        'Other': title.upper() if title else 'FORMAL ADMINISTRATIVE STATEMENT'
+        'Extension Request': 'OFFICIAL REQUEST FOR DEADLINE EXTENSION & SUBMISSION CONSIDERATION',
+        'Explanation Letter': 'FORMAL WRITTEN EXPLANATION & OFFICIAL STATEMENT OF RECORD',
+        'Personal Declaration': 'PERSONAL DECLARATION OF UNAVOIDABLE CIRCUMSTANCES',
+        'Leave Request': 'FORMAL APPLICATION FOR EMERGENCY LEAVE & TEMPORARY ABSENCE',
+        'Delay Notification': 'OFFICIAL NOTIFICATION OF SCHEDULE DISRUPTION & DELAY',
+        'Appointment Request': 'FORMAL REQUEST FOR RESCHEDULING & SPECIAL APPOINTMENT',
+        'Incident Explanation': 'FORMAL INCIDENT REPORT & CIRCUMSTANTIAL STATEMENT',
+        'Absence Explanation': 'STATEMENT OF UNAVOIDABLE ABSENCE & ACADEMIC/WORKPLACE RECORD',
+        'Other': (title.upper() if title else 'FORMAL ADMINISTRATIVE STATEMENT')
     }
 
     doc_header = type_headers.get(doc_type, title.upper() if title else 'FORMAL ADMINISTRATIVE STATEMENT')
-    subject = f"Subject: {title if title else f'Request regarding {doc_type}'}"
+    subject_title = title if title else f"Official Statement regarding {doc_type} - {user_str}"
 
     if 'extension' in doc_type.lower():
-        body = f"""I am writing to respectfully request an extension for my pending submission due to {reason_str}.
+        body_content = f"""1. PURPOSE OF COMMUNICATION
+I am writing to formally submit this written request for a deadline extension regarding our scheduled deliverable and submission timeline. Due to {reason_str}, I encountered an unavoidable disruption that severely impacted my ability to finalize the required components according to the original deadline.
 
-Due to these unforeseen circumstances, I was temporarily unable to complete the required components according to our original timeline. {additional_details if additional_details else 'I have now resolved the matter and am actively finalizing the work.'}
+2. CHRONOLOGY OF CIRCUMSTANCES & IMPACT
+On {date_str}, an unforeseen situation developed which required my immediate and undivided attention for an extended duration. This unexpected constraint precluded normal operations and access to necessary resources. While I had made substantial preliminary progress on the required objectives, the nature of this interruption prevented me from concluding the final review, quality checks, and submission procedures on time.
 
-I sincerely apologize for any disruption to your schedule and would be deeply grateful for your consideration in granting additional time to complete and submit this work."""
+3. MITIGATION & REMEDIATION STEPS TAKEN
+To minimize any disruption to the broader schedule and uphold the highest standard of work, I have taken the following immediate steps:
+  a) Resolved the immediate conflict to ensure uninterrupted focus going forward.
+  b) Prepared all draft materials, notes, and intermediate files for final compilation.
+  c) {additional_details if additional_details else 'Established an accelerated schedule to conclude all remaining sections with zero compromise on quality.'}
+
+4. PROPOSED RECTIFICATION & REQUESTED TIMELINE
+I respectfully request your consideration in granting an extension of additional time to finalize and submit the completed deliverable. I am fully prepared to provide regular progress confirmations and remain at your disposal should you require further documentation or preliminary drafts for review.
+
+5. FORMAL DECLARATION OF TRUTH
+I hereby declare that the circumstances detailed in this statement are accurate, truthful, and submitted in good faith."""
 
     elif 'leave' in doc_type.lower() or 'absence' in doc_type.lower():
-        body = f"""I am writing to formally notify you of my unavoidable absence on {date_str} due to {reason_str}.
+        body_content = f"""1. STATEMENT OF RECORD
+This document serves as formal notification and written record regarding my unavoidable absence on {date_str}, necessitated by {reason_str}.
 
-{additional_details if additional_details else 'I have taken necessary measures to ensure all urgent matters are prioritized and will resume full duties immediately upon my return.'}
+2. FACTUAL BACKGROUND & UNFORESEEN CONSTRAINTS
+Due to the sudden and urgent nature of this occurrence, I was unable to provide earlier advance notice through standard channels. The circumstances demanded urgent personal intervention and could not be deferred without significant detriment. Every reasonable effort was made to mitigate the impact of this absence.
 
-Thank you for your understanding and consideration regarding this matter."""
+3. STATUS OF DUTIES & COVERAGE MEASURES
+Prior to and during this period of absence, I have ensured that:
+  a) All immediate critical tasks have been noted and prioritized for immediate execution upon return.
+  b) Key colleagues and relevant points of contact have been informed of any pending dependencies.
+  c) {additional_details if additional_details else 'All required documentation and follow-up deliverables are being organized for immediate submission.'}
+
+4. RESUMPTION OF NORMAL RESPONSIBILITIES
+I confirm that I will resume full duties and responsibilities immediately following the resolution of this matter. I appreciate your gracious understanding and accommodation regarding these extraordinary circumstances.
+
+5. STATEMENT OF INTEGRITY
+I confirm that all statements contained within this notice are accurate and represent an honest account of the events."""
 
     elif 'delay' in doc_type.lower():
-        body = f"""I am writing to officially communicate an unexpected delay regarding our schedule on {date_str} caused by {reason_str}.
+        body_content = f"""1. FORMAL NOTICE OF DELAY
+I am submitting this official notification to formally communicate an unexpected delay regarding our schedule and committed milestones on {date_str}, caused directly by {reason_str}.
 
-{additional_details if additional_details else 'I am taking every step to minimize any impact and will follow up immediately with the completed items.'}
+2. NATURE OF THE DISRUPTION
+An unexpected logistical and operational constraint arose without prior indication, preventing timely arrival and execution of planned duties. Despite proactive efforts to navigate and resolve the disruption, circumstances beyond reasonable control resulted in a delay to our planned timeline.
 
-I appreciate your patience and flexibility."""
+3. CORRECTIVE ACTIONS
+  a) Immediate assessment and resolution of the source of disruption.
+  b) Real-time coordination to expedite remaining deliverables.
+  c) {additional_details if additional_details else 'Re-allocation of schedule to complete all pending items without further delay.'}
+
+4. APOLOGY & ASSURANCE
+I sincerely regret any inconvenience or scheduling complications this delay may have caused to your agenda. I remain fully committed to delivering the required outputs promptly.
+
+5. FORMAL VERIFICATION
+This statement is issued as a matter of record and accurate representation of the facts."""
 
     elif 'incident' in doc_type.lower():
-        body = f"""This document serves as a formal written record of the unforeseen incident that occurred on {date_str} involving {reason_str}.
+        body_content = f"""1. INCIDENT REPORT PREAMBLE
+This document constitutes an official circumstantial record of an unforeseen incident occurring on or around {date_str}, involving {reason_str}.
 
-{additional_details if additional_details else 'All relevant parties were notified promptly and appropriate remediation steps have been initiated.'}
+2. DETAILED SUMMARY OF EVENTS
+At the time in question, an unanticipated event took place that necessitated immediate emergency response and procedural deviations. This disruption directly impeded standard workflow and schedule adherence. 
 
-I remain available to provide any additional clarification or documentation as required."""
+3. DOCUMENTARY DETAILS & EVIDENCE
+  a) Primary Cause: {reason_str}.
+  b) Immediate Response: Relevant safety, logistical, or medical steps were enacted promptly.
+  c) {additional_details if additional_details else 'All affected parties have been notified and standard corrective protocols have been initiated.'}
+
+4. CONCLUSION & AVAILABILITY
+I remain fully available to answer any inquiries, supply supplementary evidence, or participate in formal discussions regarding this statement.
+
+5. ATTESTATION
+I hereby affirm that the facts set forth herein are complete, genuine, and presented without omission of material facts."""
 
     else:
-        body = f"""I am submitting this written statement regarding our scheduled obligations on {date_str}.
+        body_content = f"""1. OFFICIAL STATEMENT OF CIRCUMSTANCE
+This formal written communication is submitted for administrative and personal record regarding scheduled obligations on {date_str}, directly impacted by {reason_str}.
 
-This explanation is provided due to {reason_str}. {additional_details if additional_details else 'I have made every effort to minimize inconvenience and look forward to resolving this matter promptly.'}
+2. BACKGROUND & CONTEXT
+The circumstance described was unexpected, unavoidable, and required immediate personal attention. I have acted with urgency and good faith to address the situation while endeavoring to keep all concerned parties informed.
 
-Thank you for your time, understanding, and continued support."""
+3. IMPACT MITIGATION
+  a) Active measures taken to resolve the constraint expeditiously.
+  b) Preservation and preparation of all related work items.
+  c) {additional_details if additional_details else 'Commitment to complete all outstanding requirements at the earliest feasible window.'}
 
-    full_formatted_text = f"""{doc_header}
+4. FORMAL ACKNOWLEDGEMENT
+Thank you for your time, consideration, and gracious accommodation regarding this matter. I am grateful for your continued support and understanding.
 
-Date: {date_str}
+5. SIGNATURE ATTESTATION
+I certify that the information provided in this document is true, correct, and submitted for legitimate administrative record."""
 
-To,
+    full_formatted_text = f"""================================================================================
+{doc_header}
+Reference Number: {ref_num}
+================================================================================
+
+DATE: {date_str}
+DOCUMENT CLASSIFICATION: Formal Personal Statement & Record
+
+TO:
 {rec_str}
+Attention: Office of Administration / Designated Evaluator
 
-{subject}
+SUBJECT: {subject_title}
+
+--------------------------------------------------------------------------------
 
 Dear {rec_str},
 
-{body}
+{body_content}
 
-Thank you for your consideration.
+--------------------------------------------------------------------------------
 
-Sincerely,
-{user_name}"""
+Respectfully submitted,
+
+
+________________________________________________
+{user_str}
+Applicant / Author of Record
+
+Date Signed: {date_str}
+Document Verification Reference: {ref_num}
+
+================================================================================
+[ Excuva Official Record Draft • Verify all details before external submission ]
+================================================================================"""
 
     return {
         'doc_type': doc_type,
@@ -393,5 +461,6 @@ Sincerely,
         'recipient': rec_str,
         'issue_date': date_str,
         'reason': reason_str,
+        'reference_number': ref_num,
         'content_text': full_formatted_text
     }

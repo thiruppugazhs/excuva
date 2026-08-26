@@ -105,8 +105,19 @@ def init_neon_db():
                     default_tone VARCHAR(100) DEFAULT 'Professional',
                     default_recipient VARCHAR(100) DEFAULT 'Manager',
                     custom_api_key TEXT,
-                    theme_preference VARCHAR(50) DEFAULT 'dark',
+                    theme_preference VARCHAR(50) DEFAULT 'light',
                     email_notifications INTEGER DEFAULT 1
+                );
+
+                CREATE TABLE IF NOT EXISTS otp_codes (
+                    id BIGSERIAL PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    otp_code VARCHAR(10) NOT NULL,
+                    purpose VARCHAR(50) NOT NULL,
+                    user_id BIGINT,
+                    expires_at TIMESTAMPTZ NOT NULL,
+                    verified INTEGER DEFAULT 0,
+                    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
                 );
             ''')
             conn.commit()
@@ -352,6 +363,91 @@ def verify_and_consume_reset_token(token, new_password):
         conn.rollback()
         print(f"[Neon DB] verify_and_consume_reset_token error: {e}")
         return False
+    finally:
+        conn.close()
+
+# --- Neon OTP Verification ---
+
+def create_otp_code(email, purpose='account_verification', user_id=None):
+    conn = get_neon_connection()
+    if not conn:
+        return None
+    import random
+    otp_code = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    email_clean = email.lower().strip()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'UPDATE otp_codes SET verified = -1 WHERE email = %s AND purpose = %s AND verified = 0',
+                (email_clean, purpose)
+            )
+            cursor.execute(
+                'INSERT INTO otp_codes (email, otp_code, purpose, user_id, expires_at) VALUES (%s, %s, %s, %s, %s)',
+                (email_clean, otp_code, purpose, user_id, expires_at)
+            )
+            conn.commit()
+            return otp_code
+    except Exception as e:
+        conn.rollback()
+        print(f"[Neon DB] create_otp_code error: {e}")
+        return None
+    finally:
+        conn.close()
+
+def verify_otp_code(email, otp_code, purpose='account_verification'):
+    conn = get_neon_connection()
+    if not conn:
+        return False, "Database connection unavailable", None
+    now_utc = datetime.now(timezone.utc)
+    email_clean = email.lower().strip()
+    code_clean = str(otp_code).strip()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                '''SELECT * FROM otp_codes 
+                   WHERE email = %s AND otp_code = %s AND purpose = %s AND verified = 0 AND expires_at > %s
+                   ORDER BY id DESC LIMIT 1''',
+                (email_clean, code_clean, purpose, now_utc)
+            )
+            row = cursor.fetchone()
+            if not row:
+                return False, "Invalid or expired verification code.", None
+            cursor.execute('UPDATE otp_codes SET verified = 1 WHERE id = %s', (row['id'],))
+            conn.commit()
+            return True, "Verification successful.", row.get('user_id')
+    except Exception as e:
+        conn.rollback()
+        print(f"[Neon DB] verify_otp_code error: {e}")
+        return False, "Verification failed.", None
+    finally:
+        conn.close()
+
+def reset_password_with_otp(email, otp_code, new_password):
+    verified, msg, user_id = verify_otp_code(email, otp_code, purpose='password_reset')
+    if not verified:
+        return False, msg
+    
+    conn = get_neon_connection()
+    if not conn:
+        return False, "Database connection unavailable"
+    try:
+        new_hash = generate_password_hash(new_password)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                'UPDATE users SET password_hash = %s, updated_at = CURRENT_TIMESTAMP WHERE email = %s',
+                (new_hash, email.lower().strip())
+            )
+            cursor.execute(
+                '''DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email = %s)''',
+                (email.lower().strip(),)
+            )
+            conn.commit()
+            return True, "Password reset successfully. You may now log in."
+    except Exception as e:
+        conn.rollback()
+        print(f"[Neon DB] reset_password_with_otp error: {e}")
+        return False, "Failed to update password."
     finally:
         conn.close()
 

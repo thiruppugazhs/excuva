@@ -72,9 +72,14 @@
   <!-- ==================== AUTHENTICATED TOP HEADER ==================== -->
   <header id="auth-header" class="hidden border-b border-stone-200 bg-white/95 backdrop-blur sticky top-0 z-40 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <button type="button" id="btn-toggle-sidebar" class="md:hidden p-2 rounded-xl border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 transition-colors" title="Toggle Navigation">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
         <a href="#" data-nav="dashboard" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-amber-900 flex items-center justify-center font-bold text-white font-mono shadow-xs">
+          <div class="w-8 h-8 rounded-xl bg-amber-800 text-white flex items-center justify-center font-black text-base shadow-xs">
             E
           </div>
           <span class="font-black text-xl tracking-tight text-stone-900">Excuva</span>
@@ -82,13 +87,6 @@
       </div>
 
       <div class="flex items-center gap-4">
-        <button data-nav="generator" class="hidden sm:inline-flex btn-primary text-xs font-semibold px-3 py-1.5">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          New Explanation
-        </button>
-
         <div class="flex items-center gap-3 pl-3 border-l border-stone-200">
           <img src="" alt="Avatar" class="current-user-avatar w-8 h-8 rounded-full border border-stone-300 object-cover">
           <div class="hidden md:block text-left">
@@ -413,6 +411,7 @@
             <p class="text-xs text-stone-500">Get access to all explanation generators and document builders.</p>
           </div>
 
+          <!-- Form Registration Step 1 -->
           <form id="form-register" class="space-y-4">
             <div>
               <label for="reg-name" class="block text-xs font-semibold text-stone-700 mb-1.5">Full Name</label>
@@ -442,7 +441,28 @@
             </div>
 
             <button type="submit" id="btn-register-submit" class="btn-primary w-full py-2.5 font-bold mt-2">
-              Create Account
+              Send 6-Digit Verification Code
+            </button>
+          </form>
+
+          <!-- OTP Verification Step 2 -->
+          <form id="form-register-otp" class="hidden space-y-4 pt-2">
+            <div class="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-900">
+              <p class="font-bold">Verification code dispatched!</p>
+              <p class="mt-0.5 text-stone-600">Enter the 6-digit code sent to <span id="reg-otp-email-display" class="font-bold text-stone-900"></span></p>
+            </div>
+
+            <div>
+              <label for="reg-otp-code" class="block text-xs font-semibold text-stone-700 mb-1.5">6-Digit Verification Code</label>
+              <input type="text" id="reg-otp-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" class="input-base text-center font-mono text-xl tracking-widest font-bold">
+            </div>
+
+            <button type="submit" id="btn-verify-reg-otp" class="btn-primary w-full py-2.5 font-bold">
+              Verify Code & Activate Account
+            </button>
+
+            <button type="button" id="btn-back-to-reg" class="w-full btn-ghost text-xs text-stone-500 font-semibold">
+              ← Edit details / Resend code
             </button>
           </form>
 
@@ -527,7 +547,7 @@
         <div class="p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-6">
           <div class="text-center space-y-2">
             <h2 class="text-2xl font-extrabold text-stone-900 tracking-tight">Forgot Password</h2>
-            <p class="text-xs text-stone-500">Enter your email to receive a password reset link via Resend.</p>
+            <p class="text-xs text-stone-500">Enter your registered email to receive a 6-digit verification code.</p>
           </div>
 
           <form id="form-forgot-password" class="space-y-4">
@@ -537,16 +557,9 @@
             </div>
 
             <button type="submit" id="btn-forgot-submit" class="btn-primary w-full py-2.5 font-bold">
-              Send Reset Link
+              Send 6-Digit Reset Code
             </button>
           </form>
-
-          <div id="forgot-result-box" class="hidden p-4 rounded-xl border border-amber-300 bg-amber-50 text-xs text-amber-900 space-y-2">
-            <p class="font-semibold">Reset link dispatched! Check your inbox.</p>
-            <button type="button" id="forgot-test-link" class="text-amber-800 underline font-bold hover:text-amber-950">
-              Click here to proceed directly to Password Reset (Interactive Test)
-            </button>
-          </div>
 
           <p class="text-center text-xs text-stone-500">
             Remembered your password?
@@ -555,18 +568,23 @@
         </div>
       </section>
 
-      <!-- ==================== VIEW: RESET PASSWORD ==================== -->
+      <!-- ==================== VIEW: RESET PASSWORD (OTP) ==================== -->
       <section id="view-reset-password" class="view-section hidden py-8 max-w-md mx-auto">
         <div class="p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-6">
           <div class="text-center space-y-2">
-            <h2 class="text-2xl font-extrabold text-stone-900 tracking-tight">Set New Password</h2>
-            <p class="text-xs text-stone-500">Enter your secure reset token and your new password.</p>
+            <h2 class="text-2xl font-extrabold text-stone-900 tracking-tight">Verify & Reset Password</h2>
+            <p class="text-xs text-stone-500">Enter the 6-digit code dispatched to your email and your new password.</p>
           </div>
 
           <form id="form-reset-password" class="space-y-4">
             <div>
-              <label for="reset-token" class="block text-xs font-semibold text-stone-700 mb-1.5">Reset Token</label>
-              <input type="text" id="reset-token" required placeholder="Paste reset token" class="input-base font-mono text-xs">
+              <label for="reset-email-input" class="block text-xs font-semibold text-stone-700 mb-1.5">Email Address</label>
+              <input type="email" id="reset-email-input" required placeholder="alex@example.com" class="input-base">
+            </div>
+
+            <div>
+              <label for="reset-otp-code" class="block text-xs font-semibold text-stone-700 mb-1.5">6-Digit Verification Code</label>
+              <input type="text" id="reset-otp-code" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" class="input-base text-center font-mono text-xl tracking-widest font-bold">
             </div>
 
             <div>
@@ -580,9 +598,15 @@
             </div>
 
             <button type="submit" id="btn-reset-submit" class="btn-primary w-full py-2.5 font-bold">
-              Update Password
+              Verify Code & Update Password
             </button>
           </form>
+
+          <p class="text-center text-xs text-stone-500">
+            <a href="#" data-nav="forgot-password" class="text-amber-800 font-bold hover:underline">← Request a new code</a>
+          </p>
+        </div>
+      </section>
         </div>
       </section>
 
@@ -1319,6 +1343,16 @@
 
           <!-- Document Formatting Toolbar -->
           <div class="p-2.5 rounded-xl border border-stone-200 bg-stone-50 flex flex-wrap items-center gap-2 text-xs">
+            <span class="text-stone-500 font-semibold mr-1">Edit:</span>
+            <button type="button" id="btn-doc-undo" class="px-2.5 py-1 rounded bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 font-bold flex items-center gap-1 shadow-2xs" title="Undo (Ctrl+Z)">
+              <svg class="w-3.5 h-3.5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a5 5 0 015 5v2M3 10l6 6m-6-6l6-6"></path></svg>
+              <span>Undo</span>
+            </button>
+            <button type="button" id="btn-doc-redo" class="px-2.5 py-1 rounded bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 font-bold flex items-center gap-1 shadow-2xs" title="Redo (Ctrl+Y)">
+              <svg class="w-3.5 h-3.5 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 10h-10a5 5 0 00-5 5v2M21 10l-6 6m6-6l-6-6"></path></svg>
+              <span>Redo</span>
+            </button>
+            <span class="text-stone-300">|</span>
             <span class="text-stone-500 font-semibold mr-1">Format:</span>
             <button type="button" class="format-btn px-2.5 py-1 rounded bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 font-bold" data-cmd="bold" title="Bold">B</button>
             <button type="button" class="format-btn px-2.5 py-1 rounded bg-white border border-stone-300 hover:bg-stone-100 text-stone-800 italic" data-cmd="italic" title="Italic">I</button>
@@ -1555,9 +1589,15 @@
           </button>
         </div>
 
-        <!-- Connected Accounts Card -->
+        <!-- Connected Accounts & OAuth Setup Card -->
         <div class="p-6 sm:p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-4">
-          <h3 class="text-base font-bold text-stone-900">Connected Accounts</h3>
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-bold text-stone-900">OAuth & Connected Accounts</h3>
+            <button type="button" id="btn-toggle-oauth-guide" class="text-xs font-bold text-amber-800 hover:underline">
+              OAuth URLs & Setup Guide ↗
+            </button>
+          </div>
+
           <div class="flex items-center justify-between p-3.5 rounded-2xl border border-stone-200 bg-stone-50">
             <div class="flex items-center gap-3">
               <svg class="w-5 h-5" viewBox="0 0 24 24">
@@ -1567,22 +1607,50 @@
                 <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.1L1.9 16c1.8 3.7 5.6 7 10.1 7z"/>
               </svg>
               <div>
-                <p class="text-xs font-bold text-stone-900">Google Account</p>
-                <p id="google-conn-status" class="text-[11px] text-stone-500">Connected for fast sign-in</p>
+                <p class="text-xs font-bold text-stone-900">Google OAuth 2.0</p>
+                <p id="google-conn-status" class="text-[11px] text-stone-500">Connected for one-click authorization</p>
               </div>
             </div>
             <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Active</span>
           </div>
+
+          <!-- OAuth Setup Info Box -->
+          <div id="oauth-setup-box" class="p-4 rounded-2xl border border-amber-200 bg-amber-50/70 text-xs text-stone-800 space-y-2.5">
+            <h4 class="font-bold text-amber-950">Creating your Google OAuth 2.0 Client ID</h4>
+            <p class="leading-relaxed">1. Open the <strong>Google Cloud Console Credentials</strong> page: <br><a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-amber-800 font-mono font-bold hover:underline">https://console.cloud.google.com/apis/credentials</a></p>
+            <p class="leading-relaxed">2. Click <strong>Create Credentials → OAuth Client ID</strong> (Application type: <em>Web application</em>).</p>
+            <div class="space-y-1 bg-white p-3 rounded-xl border border-stone-200 font-mono text-[11px]">
+              <p class="text-stone-500 font-bold">Authorized JavaScript Origins:</p>
+              <p class="text-amber-900 select-all font-semibold">https://excuva.thiruppugazhs.in</p>
+              <p class="text-stone-600 select-all">http://localhost:5000</p>
+              <p class="text-stone-500 font-bold mt-2">Authorized Redirect URIs:</p>
+              <p class="text-amber-900 select-all font-semibold">https://excuva.thiruppugazhs.in/api/auth/google/callback</p>
+              <p class="text-stone-600 select-all">http://localhost:5000/api/auth/google/callback</p>
+            </div>
+          </div>
         </div>
 
-        <!-- Password Change Card -->
+        <!-- Password Change Card with OTP Protection -->
         <div class="p-6 sm:p-8 rounded-3xl border border-stone-200 bg-white shadow-xl space-y-4">
-          <h3 class="text-base font-bold text-stone-900">Change Password</h3>
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-stone-900">Security & Password</h3>
+              <p class="text-xs text-stone-500">Update your login password or verify with a 6-digit security code.</p>
+            </div>
+            <button type="button" id="btn-request-pass-otp" class="btn-secondary text-xs px-3 py-1.5 font-semibold">
+              Send Email OTP Code
+            </button>
+          </div>
 
           <div class="space-y-3">
             <div>
-              <label for="pass-current" class="block text-xs font-semibold text-stone-700 mb-1">Current Password</label>
+              <label for="pass-current" class="block text-xs font-semibold text-stone-700 mb-1">Current Password <span class="text-stone-400 font-normal">(or leave empty if using OTP)</span></label>
               <input type="password" id="pass-current" placeholder="Current password" class="input-base">
+            </div>
+
+            <div>
+              <label for="pass-otp" class="block text-xs font-semibold text-stone-700 mb-1">6-Digit Security OTP <span class="text-stone-400 font-normal">(if requested via email)</span></label>
+              <input type="text" id="pass-otp" maxlength="6" placeholder="e.g. 123456" class="input-base font-mono text-sm">
             </div>
 
             <div>
@@ -1596,8 +1664,8 @@
             </div>
           </div>
 
-          <button type="button" id="btn-change-password" class="btn-secondary py-2 px-4 font-bold text-sm">
-            Update Password
+          <button type="button" id="btn-change-password" class="btn-primary py-2.5 px-5 font-bold text-sm">
+            Update Password Securely
           </button>
         </div>
 

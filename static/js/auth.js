@@ -31,6 +31,41 @@ class AuthManager {
     return this.currentUser;
   }
 
+  async sendRegistrationOtp({ name, email, password, confirm_password, terms_accepted }) {
+    if (!name || !name.trim()) throw new Error('Full name is required.');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email.trim())) throw new Error('Please enter a valid email address.');
+    if (!password || password.length < 6) throw new Error('Password must be at least 6 characters.');
+    if (password !== confirm_password) throw new Error('Passwords do not match.');
+    if (!terms_accepted) throw new Error('You must accept the Terms of Service.');
+
+    const data = await api.post('/auth/send-registration-otp', {
+      name: name.trim(),
+      email: email.trim(),
+      password
+    });
+    showToast(data.message, 'info');
+    return data;
+  }
+
+  async verifyRegistrationOtp({ name, email, password, otp_code }) {
+    if (!otp_code || otp_code.trim().length !== 6) {
+      throw new Error('Please enter a valid 6-digit verification code.');
+    }
+    const data = await api.post('/auth/verify-registration-otp', {
+      name: name.trim(),
+      email: email.trim(),
+      password,
+      otp_code: otp_code.trim()
+    });
+
+    api.setToken(data.token);
+    this.currentUser = data.user;
+    window.dispatchEvent(new CustomEvent('auth:change', { detail: { user: this.currentUser } }));
+    showToast('Account verified and created successfully!', 'success');
+    return this.currentUser;
+  }
+
   async register({ name, email, password, confirm_password, terms_accepted }) {
     // Client-side validation
     if (!name || !name.trim()) {
@@ -104,6 +139,22 @@ class AuthManager {
     }
     const data = await api.post('/auth/forgot-password', { email: email.trim() });
     showToast(data.message, 'info');
+    return data;
+  }
+
+  async resetPasswordWithOtp({ email, otp_code, new_password, confirm_password }) {
+    if (!email || !email.trim()) throw new Error('Email address is required.');
+    if (!otp_code || otp_code.trim().length !== 6) throw new Error('Enter the 6-digit verification code.');
+    if (!new_password || new_password.length < 6) throw new Error('New password must be at least 6 characters.');
+    if (new_password !== confirm_password) throw new Error('Passwords do not match.');
+
+    const data = await api.post('/auth/reset-password-otp', {
+      email: email.trim(),
+      otp_code: otp_code.trim(),
+      new_password,
+      confirm_password
+    });
+    showToast(data.message, 'success');
     return data;
   }
 

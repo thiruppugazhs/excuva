@@ -174,11 +174,35 @@ class AppRouter {
         }
       }
     });
+    // Mobile Sidebar Toggle
+    const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+    if (btnToggleSidebar) {
+      btnToggleSidebar.addEventListener('click', () => {
+        const sidebar = document.getElementById('app-sidebar');
+        if (sidebar) {
+          sidebar.classList.toggle('hidden');
+        }
+      });
+    }
+
+    // Toggle OAuth Setup Guide
+    const btnToggleOAuth = document.getElementById('btn-toggle-oauth-guide');
+    if (btnToggleOAuth) {
+      btnToggleOAuth.addEventListener('click', () => {
+        const box = document.getElementById('oauth-setup-box');
+        if (box) box.classList.toggle('hidden');
+      });
+    }
   }
 
   bindAuthForms() {
-    // Register Form
+    // Pending registration state for OTP verification
+    let pendingRegData = null;
+
+    // Register Form - Step 1: Send OTP
     const registerForm = document.getElementById('form-register');
+    const registerOtpForm = document.getElementById('form-register-otp');
+
     if (registerForm) {
       registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -192,13 +216,65 @@ class AppRouter {
         if (submitBtn) submitBtn.disabled = true;
 
         try {
-          await auth.register({ name, email, password, confirm_password, terms_accepted });
+          pendingRegData = { name, email, password, confirm_password, terms_accepted };
+          await auth.sendRegistrationOtp(pendingRegData);
+          registerForm.classList.add('hidden');
+          if (registerOtpForm) {
+            registerOtpForm.classList.remove('hidden');
+            const emailDisplay = document.getElementById('reg-otp-email-display');
+            if (emailDisplay) emailDisplay.textContent = email;
+            const otpInput = document.getElementById('reg-otp-code');
+            if (otpInput) {
+              otpInput.value = '';
+              otpInput.focus();
+            }
+          }
+        } catch (err) {
+          showToast(err.message, 'error');
+        } finally {
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+    }
+
+    // Register Form - Step 2: Verify OTP
+    if (registerOtpForm) {
+      registerOtpForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const otp_code = document.getElementById('reg-otp-code').value;
+        const submitBtn = document.getElementById('btn-verify-reg-otp');
+
+        if (!pendingRegData) {
+          showToast('Registration details missing. Please start over.', 'error');
+          registerOtpForm.classList.add('hidden');
+          if (registerForm) registerForm.classList.remove('hidden');
+          return;
+        }
+
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          await auth.verifyRegistrationOtp({
+            name: pendingRegData.name,
+            email: pendingRegData.email,
+            password: pendingRegData.password,
+            otp_code
+          });
           this.navigate('dashboard');
         } catch (err) {
           showToast(err.message, 'error');
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
+      });
+    }
+
+    // Back to registration edit button
+    const btnBackToReg = document.getElementById('btn-back-to-reg');
+    if (btnBackToReg) {
+      btnBackToReg.addEventListener('click', () => {
+        if (registerOtpForm) registerOtpForm.classList.add('hidden');
+        if (registerForm) registerForm.classList.remove('hidden');
       });
     }
 
@@ -271,31 +347,21 @@ class AppRouter {
       });
     }
 
-    // Forgot Password Form
+    // Forgot Password Form (Requests 6-Digit OTP)
     const forgotForm = document.getElementById('form-forgot-password');
     if (forgotForm) {
       forgotForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = document.getElementById('forgot-email').value;
         const submitBtn = document.getElementById('btn-forgot-submit');
-        const resultBox = document.getElementById('forgot-result-box');
-        const testLink = document.getElementById('forgot-test-link');
 
         if (submitBtn) submitBtn.disabled = true;
 
         try {
-          const res = await auth.forgotPassword(email);
-          if (resultBox) {
-            resultBox.classList.remove('hidden');
-          }
-          if (testLink && res.debug_reset_token) {
-            testLink.dataset.token = res.debug_reset_token;
-            testLink.onclick = () => {
-              const tokenInput = document.getElementById('reset-token');
-              if (tokenInput) tokenInput.value = res.debug_reset_token;
-              this.navigate('reset-password');
-            };
-          }
+          await auth.forgotPassword(email);
+          const resetEmailInput = document.getElementById('reset-email-input');
+          if (resetEmailInput) resetEmailInput.value = email;
+          this.navigate('reset-password');
         } catch (err) {
           showToast(err.message, 'error');
         } finally {
@@ -304,12 +370,13 @@ class AppRouter {
       });
     }
 
-    // Reset Password Form
+    // Reset Password Form (Submits 6-Digit OTP + New Password)
     const resetForm = document.getElementById('form-reset-password');
     if (resetForm) {
       resetForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = document.getElementById('reset-token').value;
+        const email = document.getElementById('reset-email-input').value;
+        const otp_code = document.getElementById('reset-otp-code').value;
         const new_password = document.getElementById('reset-new-password').value;
         const confirm_password = document.getElementById('reset-confirm-password').value;
         const submitBtn = document.getElementById('btn-reset-submit');
@@ -317,7 +384,7 @@ class AppRouter {
         if (submitBtn) submitBtn.disabled = true;
 
         try {
-          await auth.resetPassword({ token, new_password, confirm_password });
+          await auth.resetPasswordWithOtp({ email, otp_code, new_password, confirm_password });
           this.navigate('login');
         } catch (err) {
           showToast(err.message, 'error');

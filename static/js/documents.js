@@ -5,6 +5,9 @@ export class DocumentsManager {
   constructor() {
     this.selectedType = 'Explanation Letter';
     this.currentDocument = null;
+    this.historyStack = [];
+    this.historyIndex = -1;
+    this.isHistoryAction = false;
   }
 
   init() {
@@ -21,9 +24,55 @@ export class DocumentsManager {
     }
   }
 
+  saveSnapshot() {
+    if (this.isHistoryAction) return;
+    const canvas = document.getElementById('formal-doc-canvas');
+    if (!canvas) return;
+
+    const currentHTML = canvas.innerHTML;
+    // Truncate future if user typed after an undo
+    if (this.historyIndex < this.historyStack.length - 1) {
+      this.historyStack = this.historyStack.slice(0, this.historyIndex + 1);
+    }
+
+    if (this.historyStack[this.historyIndex] !== currentHTML) {
+      this.historyStack.push(currentHTML);
+      if (this.historyStack.length > 50) this.historyStack.shift();
+      this.historyIndex = this.historyStack.length - 1;
+    }
+  }
+
+  undo() {
+    if (this.historyIndex > 0) {
+      this.historyIndex--;
+      this.applySnapshot(this.historyStack[this.historyIndex]);
+      showToast('Undo applied', 'info');
+    } else {
+      document.execCommand('undo', false, null);
+    }
+  }
+
+  redo() {
+    if (this.historyIndex < this.historyStack.length - 1) {
+      this.historyIndex++;
+      this.applySnapshot(this.historyStack[this.historyIndex]);
+      showToast('Redo applied', 'info');
+    } else {
+      document.execCommand('redo', false, null);
+    }
+  }
+
+  applySnapshot(html) {
+    const canvas = document.getElementById('formal-doc-canvas');
+    if (!canvas) return;
+    this.isHistoryAction = true;
+    canvas.innerHTML = html;
+    this.isHistoryAction = false;
+  }
+
   bindEvents() {
     // 1. Document Type Radio Cards
-    const typeGroup = document.getElementById('doc-type-group');
+    const typeGroup = document.getElementById('doc-type-radio-group') || document.getElementById('doc-type-group');
     if (typeGroup) {
       const radios = typeGroup.querySelectorAll('input[name="doc-type-radio"]');
       radios.forEach(radio => {
@@ -43,13 +92,38 @@ export class DocumentsManager {
       btnGen.addEventListener('click', () => this.handleGenerateDocument());
     }
 
-    // 3. Document Editor Formatting Buttons
+    // 3. Undo and Redo Button Events
+    const btnUndo = document.getElementById('btn-doc-undo');
+    if (btnUndo) {
+      btnUndo.addEventListener('click', () => this.undo());
+    }
+
+    const btnRedo = document.getElementById('btn-doc-redo');
+    if (btnRedo) {
+      btnRedo.addEventListener('click', () => this.redo());
+    }
+
+    // Canvas Input Snapshotting
+    const canvas = document.getElementById('formal-doc-canvas');
+    if (canvas) {
+      let debounceTimer = null;
+      canvas.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => this.saveSnapshot(), 400);
+      });
+    }
+
+    // 4. Document Editor Formatting Buttons
     document.querySelectorAll('.format-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const cmd = e.currentTarget.dataset.cmd;
-        if (cmd) {
+        if (cmd === 'undo') {
+          this.undo();
+        } else if (cmd === 'redo') {
+          this.redo();
+        } else if (cmd) {
           document.execCommand(cmd, false, null);
-          const canvas = document.getElementById('formal-doc-canvas');
+          this.saveSnapshot();
           if (canvas) canvas.focus();
         }
       });
@@ -60,6 +134,7 @@ export class DocumentsManager {
       btnInsertDate.addEventListener('click', () => {
         const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
         document.execCommand('insertText', false, today);
+        this.saveSnapshot();
       });
     }
 
@@ -68,10 +143,11 @@ export class DocumentsManager {
       btnInsertSig.addEventListener('click', () => {
         const sigBlock = '\n\nSincerely,\n_________________________\n[Authorized Signer]';
         document.execCommand('insertText', false, sigBlock);
+        this.saveSnapshot();
       });
     }
 
-    // 4. Editor Action Buttons (Copy, Save, Print / PDF)
+    // 5. Editor Action Buttons (Copy, Save, Print / PDF)
     const btnCopy = document.getElementById('btn-copy-editor-text');
     if (btnCopy) {
       btnCopy.addEventListener('click', () => {

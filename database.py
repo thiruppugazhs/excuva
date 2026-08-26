@@ -124,9 +124,23 @@ def init_db():
         default_tone TEXT DEFAULT 'Professional',
         default_recipient TEXT DEFAULT 'Manager',
         custom_api_key TEXT,
-        theme_preference TEXT DEFAULT 'dark',
+        theme_preference TEXT DEFAULT 'light',
         email_notifications INTEGER DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+    )
+    ''')
+
+    # OTP Codes Table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS otp_codes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        otp_code TEXT NOT NULL,
+        purpose TEXT NOT NULL,
+        user_id INTEGER,
+        expires_at TIMESTAMP NOT NULL,
+        verified INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     ''')
 
@@ -332,6 +346,74 @@ def verify_and_consume_reset_token(token, new_password):
     conn.commit()
     conn.close()
     return True
+
+# --- Unified OTP Verification Helpers ---
+
+def create_otp_code(email, purpose='account_verification', user_id=None):
+    if is_using_neon():
+        return neon_db.create_otp_code(email, purpose, user_id)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    import random
+    otp_code = f"{random.randint(100000, 999999)}"
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:%S')
+    email_clean = email.lower().strip()
+    cursor.execute(
+        'UPDATE otp_codes SET verified = -1 WHERE email = ? AND purpose = ? AND verified = 0',
+        (email_clean, purpose)
+    )
+    cursor.execute(
+        'INSERT INTO otp_codes (email, otp_code, purpose, user_id, expires_at) VALUES (?, ?, ?, ?, ?)',
+        (email_clean, otp_code, purpose, user_id, expires_at)
+    )
+    conn.commit()
+    conn.close()
+    return otp_code
+
+def verify_otp_code(email, otp_code, purpose='account_verification'):
+    if is_using_neon():
+        return neon_db.verify_otp_code(email, otp_code, purpose)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+    email_clean = email.lower().strip()
+    code_clean = str(otp_code).strip()
+    cursor.execute(
+        '''SELECT * FROM otp_codes 
+           WHERE email = ? AND otp_code = ? AND purpose = ? AND verified = 0 AND expires_at > ?
+           ORDER BY id DESC LIMIT 1''',
+        (email_clean, code_clean, purpose, now_str)
+    )
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False, "Invalid or expired verification code.", None
+    cursor.execute('UPDATE otp_codes SET verified = 1 WHERE id = ?', (row['id'],))
+    conn.commit()
+    user_id = row['user_id']
+    conn.close()
+    return True, "Verification successful.", user_id
+
+def reset_password_with_otp(email, otp_code, new_password):
+    if is_using_neon():
+        return neon_db.reset_password_with_otp(email, otp_code, new_password)
+    verified, msg, user_id = verify_otp_code(email, otp_code, purpose='password_reset')
+    if not verified:
+        return False, msg
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    new_hash = generate_password_hash(new_password)
+    cursor.execute(
+        'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE email = ?',
+        (new_hash, email.lower().strip())
+    )
+    cursor.execute(
+        '''DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email = ?)''',
+        (email.lower().strip(),)
+    )
+    conn.commit()
+    conn.close()
+    return True, "Password reset successfully. You may now log in."
 
 # --- Unified Excuses CRUD ---
 

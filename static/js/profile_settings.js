@@ -43,10 +43,15 @@ export class ProfileSettingsManager {
       avatarFileInput.addEventListener('change', (e) => this.handleAvatarUpload(e));
     }
 
-    // Change password button
+    // Change password button & Request OTP button
     const changePassBtn = document.getElementById('btn-change-password');
     if (changePassBtn) {
       changePassBtn.addEventListener('click', () => this.handleChangePassword());
+    }
+
+    const requestOtpBtn = document.getElementById('btn-request-pass-otp');
+    if (requestOtpBtn) {
+      requestOtpBtn.addEventListener('click', () => this.handleRequestPasswordOtp());
     }
 
     // 50. Delete All History button
@@ -285,12 +290,31 @@ export class ProfileSettingsManager {
     }
   }
 
+  async handleRequestPasswordOtp() {
+    const btn = document.getElementById('btn-request-pass-otp');
+    if (btn) btn.disabled = true;
+    try {
+      const res = await api.post('/user/request-password-otp', {});
+      showToast(res.message || '6-digit OTP sent to your email', 'info');
+      const otpInput = document.getElementById('pass-otp');
+      if (otpInput) {
+        otpInput.focus();
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to send OTP', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   async handleChangePassword() {
     const oldPassInput = document.getElementById('pass-current');
+    const otpInput = document.getElementById('pass-otp');
     const newPassInput = document.getElementById('pass-new');
     const confirmPassInput = document.getElementById('pass-confirm');
 
     const old_password = oldPassInput ? oldPassInput.value : '';
+    const otp_code = otpInput ? otpInput.value.trim() : '';
     const new_password = newPassInput ? newPassInput.value : '';
     const confirm_password = confirmPassInput ? confirmPassInput.value : '';
 
@@ -304,13 +328,30 @@ export class ProfileSettingsManager {
     }
 
     try {
-      await api.post('/user/change-password', {
-        old_password,
-        new_password,
-        confirm_password
-      });
-      showToast('Password updated successfully', 'success');
+      if (otp_code) {
+        // Verification with 6-digit OTP
+        const res = await api.post('/user/verify-password-otp', {
+          otp_code,
+          new_password,
+          confirm_password
+        });
+        showToast(res.message || 'Password updated successfully', 'success');
+      } else {
+        // Direct password change with old password
+        if (!old_password) {
+          showToast('Enter your current password or request an email OTP', 'error');
+          return;
+        }
+        await api.post('/user/change-password', {
+          old_password,
+          new_password,
+          confirm_password
+        });
+        showToast('Password updated successfully', 'success');
+      }
+
       if (oldPassInput) oldPassInput.value = '';
+      if (otpInput) otpInput.value = '';
       if (newPassInput) newPassInput.value = '';
       if (confirmPassInput) confirmPassInput.value = '';
     } catch (err) {
