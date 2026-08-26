@@ -257,6 +257,10 @@ class AppRouter {
     }
   }
 
+  bindAuthForms() {
+    // Pending registration state for OTP verification
+    let pendingRegData = null;
+
     // Helper to wire Orbital OTP digit slots
     const setupOrbitalSlots = (containerSelector, hiddenInputId) => {
       const container = document.querySelector(containerSelector);
