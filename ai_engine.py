@@ -51,20 +51,156 @@ def clean_llm_json(text):
     except Exception:
         return None
 
-def generate_excuse_with_gemini(api_key, scenario, recipient, situation_type="General", tone="Professional", length="Medium", delivery_method="Email", user_name="Alex", details=""):
-    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash"]
+import urllib.request
+
+def call_llm_api(provider, api_key, system_prompt, user_prompt, is_json=False):
+    if not api_key:
+        return None
+    key_str = str(api_key).strip()
     
-    for model_name in candidate_models:
+    # Auto-detect provider if needed
+    prov = (provider or '').lower()
+    if prov in ('', 'auto', 'built_in'):
+        if key_str.startswith('sk-ant-'):
+            prov = 'claude'
+        elif key_str.startswith('xai-'):
+            prov = 'grok'
+        elif key_str.startswith('AIza'):
+            prov = 'gemini'
+        elif key_str.startswith('sk-'):
+            prov = 'openai'
+        else:
+            prov = 'gemini'
+
+    if prov == 'gemini':
+        if not gemini_available:
+            return None
+        candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash"]
+        full_prompt = f"{system_prompt}\n\n{user_prompt}"
+        for model_name in candidate_models:
+            try:
+                genai.configure(api_key=key_str)
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content(full_prompt, request_options={"timeout": 4})
+                text = response.text.strip()
+                if text:
+                    return text
+            except Exception:
+                continue
+        return None
+
+    elif prov in ('openai', 'grok', 'custom'):
+        endpoint = "https://api.openai.com/v1/chat/completions"
+        model = "gpt-4o-mini"
+        if prov == 'grok':
+            endpoint = "https://api.x.ai/v1/chat/completions"
+            model = "grok-2-latest"
+        
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.7
+        }
+        if is_json and prov == 'openai':
+            payload["response_format"] = {"type": "json_object"}
+
         try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt, request_options={"timeout": 4})
-            parsed = clean_llm_json(response.text)
-            if parsed and 'primary_text' in parsed:
-                return parsed
-        except Exception:
-            continue
+            req_data = json.dumps(payload).encode('utf-8')
+            req = urllib.request.Request(
+                endpoint,
+                data=req_data,
+                headers={
+                    "Authorization": f"Bearer {key_str}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "Excuva/1.0"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                return data['choices'][0]['message']['content'].strip()
+        except Exception as e:
+            print(f"[{prov} API Error]: {e}")
+            return None
+
+    elif prov == 'claude':
+        try:
+            payload = {
+                "model": "claude-3-5-sonnet-20241022",
+                "max_tokens": 1024,
+                "system": system_prompt,
+                "messages": [
+                    {"role": "user", "content": user_prompt}
+                ]
+            }
+            req_data = json.dumps(payload).encode('utf-8')
+            req = urllib.request.Request(
+                "https://api.anthropic.com/v1/messages",
+                data=req_data,
+                headers={
+                    "x-api-key": key_str,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                return data['content'][0]['text'].strip()
+        except Exception as e:
+            print(f"[Claude API Error]: {e}")
+            return None
+
     return None
+
+def generate_excuse_with_llm(api_key, scenario, recipient, situation_type="General", tone="Professional", length="Medium", delivery_method="Email", user_name="Alex", details="", provider=None):
+    if not api_key:
+        return None
+    
+    system_prompt = "You are an expert communications specialist crafting realistic, believable, context-tailored explanations. Return ONLY a valid JSON object matching the requested schema."
+    user_prompt = f"""Input Parameters:
+- Situation Description: {scenario}
+- Situation Category: {situation_type}
+- Intended Recipient: {recipient}
+- Selected Tone: {tone}
+- Desired Length: {length} ({LENGTH_GUIDELINES.get(length, 'Medium length')})
+- Delivery Channel: {delivery_method} ({DELIVERY_FORMATS.get(delivery_method, 'Standard format')})
+- Sender Name: {user_name}
+- Additional Constraints: {details if details else 'None'}
+
+Formatting Rules:
+1. If Delivery Channel is 'Email', start the text with "Subject: [Clear, Professional Subject Line]" followed by a blank line, salutation, body, and closing.
+2. If Delivery Channel is 'In Person', phrase it as a spoken conversational script that sounds natural when spoken aloud.
+3. If Delivery Channel is 'WhatsApp' or 'SMS', keep it conversational without email subjects.
+4. Adhere strictly to the requested length ({length}).
+5. Generate a primary response plus 2 diverse alternative variants, an estimated believability score (85-99), risk level (Low, Moderate), and 3 actionable tactical follow-up tips.
+
+Return ONLY a valid JSON object matching this schema:
+{{
+  "primary_text": "Full drafted message ready to send or speak",
+  "variations": [
+    {{"title": "Concise Option", "text": "Short alternative"}},
+    {{"title": "Detailed Option", "text": "Detailed alternative"}}
+  ],
+  "believability_score": 96,
+  "risk_level": "Low",
+  "tips": [
+    "Send the explanation at least 15 minutes before the scheduled time.",
+    "Proactively propose a specific rescheduling window.",
+    "Keep your explanation consistent if asked for minor clarification."
+  ]
+}}"""
+
+    raw = call_llm_api(provider, api_key, system_prompt, user_prompt, is_json=True)
+    if raw:
+        parsed = clean_llm_json(raw)
+        if parsed and 'primary_text' in parsed:
+            return parsed
+    return None
+
+def generate_excuse_with_gemini(api_key, scenario, recipient, situation_type="General", tone="Professional", length="Medium", delivery_method="Email", user_name="Alex", details=""):
+    return generate_excuse_with_llm(api_key, scenario, recipient, situation_type, tone, length, delivery_method, user_name, details, provider='gemini')
 
 def generate_excuse_contextual(scenario, recipient, situation_type="Missed deadline", tone="Professional", length="Medium", delivery_method="Email", user_name="Alex", details=""):
     rec_info = RECIPIENT_PROFILES.get(recipient, {'salutation': f'Hi {recipient},', 'signoff': f'Best regards,\n{user_name}'})
@@ -173,15 +309,11 @@ def generate_excuse_contextual(scenario, recipient, situation_type="Missed deadl
         ]
     }
 
-def rewrite_excuse_with_gemini(api_key, original_text, instruction, tone="Professional", user_name="Alex"):
-    if not gemini_available or not api_key:
+def rewrite_excuse_with_llm(api_key, original_text, instruction, tone="Professional", user_name="Alex", provider=None):
+    if not api_key:
         return None
-    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro", "gemini-pro"]
-    prompt = f"""
-You are a professional communications specialist.
-Rewrite the following message according to the user's specific instruction.
-
-Original Message:
+    system_prompt = "You are a professional communications specialist. Return ONLY the rewritten message text with zero conversational filler or robotic tags."
+    user_prompt = f"""Original Message:
 {original_text}
 
 Instruction / Goal:
@@ -195,20 +327,11 @@ Sender Name:
 
 Rules:
 - Keep the message authentic, natural, believable, and ready to send.
-- No conversational filler, no robot tags. Return ONLY the rewritten message text.
-"""
-    candidate_models = ["gemini-1.5-flash", "gemini-2.0-flash"]
-    for model_name in candidate_models:
-        try:
-            genai.configure(api_key=api_key)
-            model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt, request_options={"timeout": 4})
-            text = response.text.strip()
-            if text:
-                return text
-        except Exception:
-            continue
-    return None
+- No conversational filler, no robot tags. Return ONLY the rewritten message text."""
+    return call_llm_api(provider, api_key, system_prompt, user_prompt, is_json=False)
+
+def rewrite_excuse_with_gemini(api_key, original_text, instruction, tone="Professional", user_name="Alex"):
+    return rewrite_excuse_with_llm(api_key, original_text, instruction, tone, user_name, provider='gemini')
 
 def rewrite_excuse_contextual(original_text, instruction, user_name="Alex"):
     """

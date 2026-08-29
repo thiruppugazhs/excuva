@@ -30,6 +30,51 @@ export class ProfileSettingsManager {
       savePrefsBtn.addEventListener('click', () => this.handleSavePreferences());
     }
 
+    // AI Engine Configuration buttons
+    const saveAiBtn = document.getElementById('btn-save-ai-settings');
+    if (saveAiBtn) {
+      saveAiBtn.addEventListener('click', () => this.handleSaveAiSettings());
+    }
+
+    const resetAiBtn = document.getElementById('btn-reset-ai-settings');
+    if (resetAiBtn) {
+      resetAiBtn.addEventListener('click', () => this.handleResetAiSettings());
+    }
+
+    const clearKeyBtn = document.getElementById('btn-clear-settings-key');
+    if (clearKeyBtn) {
+      clearKeyBtn.addEventListener('click', () => this.handleResetAiSettings());
+    }
+
+    const toggleKeyVisBtn = document.getElementById('btn-toggle-settings-key-vis');
+    const settingsKeyInput = document.getElementById('settings-custom-api-key');
+    if (toggleKeyVisBtn && settingsKeyInput) {
+      toggleKeyVisBtn.addEventListener('click', () => {
+        const isPass = settingsKeyInput.type === 'password';
+        settingsKeyInput.type = isPass ? 'text' : 'password';
+      });
+    }
+
+    const settingsProviderSelect = document.getElementById('settings-api-provider');
+    if (settingsProviderSelect && settingsKeyInput) {
+      settingsProviderSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'built_in') {
+          settingsKeyInput.placeholder = 'Using built-in AI (no key needed)';
+        } else if (val === 'openai') {
+          settingsKeyInput.placeholder = 'e.g. sk-proj-...';
+        } else if (val === 'grok') {
+          settingsKeyInput.placeholder = 'e.g. xai-...';
+        } else if (val === 'gemini') {
+          settingsKeyInput.placeholder = 'e.g. AIzaSy...';
+        } else if (val === 'claude') {
+          settingsKeyInput.placeholder = 'e.g. sk-ant-...';
+        } else {
+          settingsKeyInput.placeholder = 'e.g. sk-...';
+        }
+      });
+    }
+
     // 38. Save profile button
     const saveProfileBtn = document.getElementById('btn-save-profile');
     if (saveProfileBtn) {
@@ -99,6 +144,30 @@ export class ProfileSettingsManager {
       document.querySelectorAll('.theme-option-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === currentTheme);
       });
+
+      // Populate AI Engine Provider & Key status
+      const providerSelect = document.getElementById('settings-api-provider');
+      const keyStatus = document.getElementById('settings-key-status');
+      const aiBadge = document.getElementById('badge-current-ai-mode');
+      const apiKeyInput = document.getElementById('settings-custom-api-key');
+
+      const prov = this.settings.api_provider || 'built_in';
+      if (providerSelect) providerSelect.value = prov;
+
+      if (this.settings.has_custom_api_key) {
+        if (keyStatus) keyStatus.textContent = `Active Key: ${this.settings.masked_api_key}`;
+        if (aiBadge) {
+          aiBadge.textContent = `Custom (${prov.toUpperCase()})`;
+          aiBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300';
+        }
+      } else {
+        if (keyStatus) keyStatus.textContent = 'Using built-in AI';
+        if (aiBadge) {
+          aiBadge.textContent = 'Built-in AI';
+          aiBadge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300';
+        }
+      }
+      if (apiKeyInput) apiKeyInput.value = '';
     } catch (err) {
       // Quiet fail if guest
     }
@@ -264,6 +333,46 @@ export class ProfileSettingsManager {
       this.loadSettings();
     } catch (err) {
       showToast(err.message || 'Failed to save preferences', 'error');
+    }
+  }
+
+  async handleSaveAiSettings() {
+    const providerSelect = document.getElementById('settings-api-provider');
+    const apiKeyInput = document.getElementById('settings-custom-api-key');
+    const provider = providerSelect ? providerSelect.value : 'built_in';
+    const key = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+    if (provider !== 'built_in' && !key && !this.settings.has_custom_api_key) {
+      showToast('Please enter an API key for the selected provider or select Built-in AI.', 'error');
+      if (apiKeyInput) apiKeyInput.focus();
+      return;
+    }
+
+    try {
+      const payload = { api_provider: provider };
+      if (key) {
+        payload.custom_api_key = key;
+      } else if (provider === 'built_in') {
+        payload.custom_api_key = '';
+      }
+      await api.post('/user/settings', payload);
+      showToast('AI engine configuration saved successfully', 'success');
+      if (apiKeyInput) apiKeyInput.value = '';
+      await this.loadSettings();
+    } catch (err) {
+      showToast(err.message || 'Failed to save AI configuration', 'error');
+    }
+  }
+
+  async handleResetAiSettings() {
+    try {
+      await api.post('/user/settings', { api_provider: 'built_in', custom_api_key: '' });
+      showToast('Switched to Excuva Built-in AI', 'success');
+      const apiKeyInput = document.getElementById('settings-custom-api-key');
+      if (apiKeyInput) apiKeyInput.value = '';
+      await this.loadSettings();
+    } catch (err) {
+      showToast(err.message || 'Failed to reset AI settings', 'error');
     }
   }
 

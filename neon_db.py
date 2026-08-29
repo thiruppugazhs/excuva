@@ -105,9 +105,12 @@ def init_neon_db():
                     default_tone VARCHAR(100) DEFAULT 'Professional',
                     default_recipient VARCHAR(100) DEFAULT 'Manager',
                     custom_api_key TEXT,
+                    api_provider VARCHAR(50) DEFAULT 'built_in',
                     theme_preference VARCHAR(50) DEFAULT 'light',
                     email_notifications INTEGER DEFAULT 1
                 );
+
+                ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS api_provider VARCHAR(50) DEFAULT 'built_in';
 
                 CREATE TABLE IF NOT EXISTS otp_codes (
                     id BIGSERIAL PRIMARY KEY,
@@ -755,22 +758,23 @@ def get_user_settings(user_id):
     finally:
         conn.close()
 
-def update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key=None):
+def update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key=None, api_provider='built_in'):
     conn = get_neon_connection()
     if not conn:
         return {}
     try:
         with conn.cursor() as cursor:
             cursor.execute('''
-                INSERT INTO user_settings (user_id, default_tone, default_recipient, theme_preference, custom_api_key)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO user_settings (user_id, default_tone, default_recipient, theme_preference, custom_api_key, api_provider)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (user_id) DO UPDATE SET
                     default_tone = EXCLUDED.default_tone,
                     default_recipient = EXCLUDED.default_recipient,
                     theme_preference = EXCLUDED.theme_preference,
-                    custom_api_key = EXCLUDED.custom_api_key
+                    custom_api_key = EXCLUDED.custom_api_key,
+                    api_provider = EXCLUDED.api_provider
                 RETURNING *
-            ''', (user_id, default_tone, default_recipient, theme_preference, custom_api_key))
+            ''', (user_id, default_tone, default_recipient, theme_preference, custom_api_key, api_provider))
             row = cursor.fetchone()
             conn.commit()
             return dict(row) if row else {}

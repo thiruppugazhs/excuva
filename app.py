@@ -489,13 +489,19 @@ def generate_excuse():
     if not scenario:
         return jsonify({'error': 'Please describe the situation.'}), 400
 
-    # Check for custom Gemini API key or environment variable
+    # Check for custom API key (ChatGPT, Grok, Gemini, etc.) or environment variable
     settings = db.get_user_settings(user['id'])
-    api_key = settings.get('custom_api_key') or os.getenv('GOOGLE_API_KEY')
+    api_provider = settings.get('api_provider', 'built_in')
+    api_key = settings.get('custom_api_key')
+
+    if not api_key:
+        api_key = os.getenv('GOOGLE_API_KEY')
+        if api_key:
+            api_provider = 'gemini'
 
     result = None
     if api_key:
-        result = ai_engine.generate_excuse_with_gemini(
+        result = ai_engine.generate_excuse_with_llm(
             api_key=api_key,
             scenario=scenario,
             recipient=recipient,
@@ -504,7 +510,8 @@ def generate_excuse():
             length=length,
             delivery_method=delivery_method,
             user_name=user['name'],
-            details=details
+            details=details,
+            provider=api_provider
         )
 
     if not result:
@@ -555,16 +562,22 @@ def rewrite_excuse():
         return jsonify({'error': 'Original text is required.'}), 400
 
     settings = db.get_user_settings(user['id'])
-    api_key = settings.get('custom_api_key') or os.getenv('GOOGLE_API_KEY')
+    api_provider = settings.get('api_provider', 'built_in')
+    api_key = settings.get('custom_api_key')
+    if not api_key:
+        api_key = os.getenv('GOOGLE_API_KEY')
+        if api_key:
+            api_provider = 'gemini'
 
     rewritten = None
     if api_key:
-        rewritten = ai_engine.rewrite_excuse_with_gemini(
+        rewritten = ai_engine.rewrite_excuse_with_llm(
             api_key=api_key,
             original_text=original_text,
             instruction=instruction,
             tone=tone,
-            user_name=user['name']
+            user_name=user['name'],
+            provider=api_provider
         )
 
     if not rewritten:
@@ -729,9 +742,13 @@ def get_settings():
         return jsonify({'error': 'Unauthorized'}), 401
 
     settings = db.get_user_settings(user['id'])
+    if 'api_provider' not in settings or not settings['api_provider']:
+        settings['api_provider'] = 'built_in'
+
     # Mask API key if set
     if settings.get('custom_api_key'):
-        masked = settings['custom_api_key'][:4] + '...' + settings['custom_api_key'][-4:]
+        key_val = settings['custom_api_key']
+        masked = key_val[:4] + '...' + key_val[-4:] if len(key_val) > 8 else '••••••••'
         settings['has_custom_api_key'] = True
         settings['masked_api_key'] = masked
     else:
@@ -747,31 +764,29 @@ def handle_settings():
         return jsonify({'error': 'Unauthorized'}), 401
 
     if request.method == 'GET':
-        settings = db.get_user_settings(user['id'])
-        if settings.get('custom_api_key'):
-            masked = settings['custom_api_key'][:4] + '...' + settings['custom_api_key'][-4:]
-            settings['has_custom_api_key'] = True
-            settings['masked_api_key'] = masked
-        else:
-            settings['has_custom_api_key'] = False
-            settings['masked_api_key'] = ''
-        return jsonify({'settings': settings})
+        return get_settings()
 
     data = request.get_json() or {}
-    default_tone = data.get('default_tone', 'Professional')
-    default_recipient = data.get('default_recipient', 'Manager')
-    theme_preference = data.get('theme_preference', 'light')
-    custom_api_key = data.get('custom_api_key', None)
+    existing = db.get_user_settings(user['id'])
 
+    default_tone = data.get('default_tone', existing.get('default_tone', 'Professional'))
+    default_recipient = data.get('default_recipient', existing.get('default_recipient', 'Manager'))
+    theme_preference = data.get('theme_preference', existing.get('theme_preference', 'light'))
+    api_provider = data.get('api_provider', existing.get('api_provider', 'built_in'))
+    
+    custom_api_key = data.get('custom_api_key', None)
     if custom_api_key is not None and custom_api_key.strip() == '':
         custom_api_key = None
+    elif custom_api_key is None and 'custom_api_key' not in data:
+        custom_api_key = existing.get('custom_api_key')
 
     updated = db.update_user_settings(
         user_id=user['id'],
         default_tone=default_tone,
         default_recipient=default_recipient,
         theme_preference=theme_preference,
-        custom_api_key=custom_api_key
+        custom_api_key=custom_api_key,
+        api_provider=api_provider
     )
     return jsonify({'message': 'Settings saved successfully.', 'settings': updated})
 

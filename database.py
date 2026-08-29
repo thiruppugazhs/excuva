@@ -124,11 +124,16 @@ def init_db():
         default_tone TEXT DEFAULT 'Professional',
         default_recipient TEXT DEFAULT 'Manager',
         custom_api_key TEXT,
+        api_provider TEXT DEFAULT 'built_in',
         theme_preference TEXT DEFAULT 'light',
         email_notifications INTEGER DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
     )
     ''')
+    try:
+        cursor.execute("ALTER TABLE user_settings ADD COLUMN api_provider TEXT DEFAULT 'built_in'")
+    except Exception:
+        pass
 
     # OTP Codes Table
     cursor.execute('''
@@ -642,18 +647,18 @@ def get_user_settings(user_id):
     conn.close()
     return dict(row) if row else {}
 
-def update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key=None):
+def update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key=None, api_provider='built_in'):
     if is_using_neon():
-        return neon_db.update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key)
+        return neon_db.update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key, api_provider)
     if is_using_supabase():
-        return supabase_db.update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key)
+        return supabase_db.update_user_settings(user_id, default_tone, default_recipient, theme_preference, custom_api_key, api_provider)
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE user_settings
-        SET default_tone = ?, default_recipient = ?, theme_preference = ?, custom_api_key = ?
+        SET default_tone = ?, default_recipient = ?, theme_preference = ?, custom_api_key = ?, api_provider = ?
         WHERE user_id = ?
-    ''', (default_tone, default_recipient, theme_preference, custom_api_key, user_id))
+    ''', (default_tone, default_recipient, theme_preference, custom_api_key, api_provider, user_id))
     conn.commit()
     conn.close()
     return get_user_settings(user_id)

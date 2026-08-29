@@ -336,6 +336,13 @@ class AppRouter {
           pendingRegData = { name, email, password, confirm_password, terms_accepted };
           const res = await auth.sendRegistrationOtp(pendingRegData);
           registerForm.classList.add('hidden');
+          const oauthDivider = document.getElementById('reg-oauth-divider');
+          const oauthWrapper = document.getElementById('reg-oauth-wrapper');
+          const loginPrompt = document.getElementById('reg-login-prompt');
+          if (oauthDivider) oauthDivider.classList.add('hidden');
+          if (oauthWrapper) oauthWrapper.classList.add('hidden');
+          if (loginPrompt) loginPrompt.classList.add('hidden');
+
           if (registerOtpForm) {
             registerOtpForm.classList.remove('hidden');
             const emailDisplay = document.getElementById('reg-otp-email-display');
@@ -368,6 +375,8 @@ class AppRouter {
     }
 
     // Register Form - Step 2: Verify OTP
+    const aiChoicePanel = document.getElementById('form-register-ai-choice');
+
     if (registerOtpForm) {
       registerOtpForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -378,6 +387,12 @@ class AppRouter {
           showToast('Registration details missing. Please start over.', 'error');
           registerOtpForm.classList.add('hidden');
           if (registerForm) registerForm.classList.remove('hidden');
+          const oauthDivider = document.getElementById('reg-oauth-divider');
+          const oauthWrapper = document.getElementById('reg-oauth-wrapper');
+          const loginPrompt = document.getElementById('reg-login-prompt');
+          if (oauthDivider) oauthDivider.classList.remove('hidden');
+          if (oauthWrapper) oauthWrapper.classList.remove('hidden');
+          if (loginPrompt) loginPrompt.classList.remove('hidden');
           return;
         }
 
@@ -395,12 +410,139 @@ class AppRouter {
             password: pendingRegData.password,
             otp_code
           });
-          this.navigate('dashboard');
+
+          // After entering and verifying OTP -> show Step 3: AI Engine Choice!
+          registerOtpForm.classList.add('hidden');
+          if (aiChoicePanel) {
+            aiChoicePanel.classList.remove('hidden');
+            // Reset to default selection
+            const radioBuiltin = document.querySelector('input[name="reg-ai-mode"][value="builtin"]');
+            if (radioBuiltin) {
+              radioBuiltin.checked = true;
+              radioBuiltin.dispatchEvent(new Event('change'));
+            }
+          } else {
+            this.navigate('dashboard');
+          }
         } catch (err) {
           showToast(err.message, 'error');
         } finally {
           if (submitBtn) submitBtn.disabled = false;
         }
+      });
+    }
+
+    // AI Engine Choice Step 3 Event Handlers
+    const cardAiBuiltin = document.getElementById('card-ai-builtin');
+    const cardAiCustom = document.getElementById('card-ai-custom');
+    const customApiPanel = document.getElementById('reg-custom-api-panel');
+    const regApiProvider = document.getElementById('reg-api-provider');
+    const regCustomApiKey = document.getElementById('reg-custom-api-key');
+
+    const updateAiChoiceVisuals = (mode) => {
+      if (mode === 'custom') {
+        if (cardAiCustom) {
+          cardAiCustom.classList.add('active-card', 'border-2', 'border-amber-800', 'bg-amber-50/50');
+          cardAiCustom.classList.remove('border-stone-200', 'bg-white');
+        }
+        if (cardAiBuiltin) {
+          cardAiBuiltin.classList.remove('active-card', 'border-2', 'border-amber-800', 'bg-amber-50/50');
+          cardAiBuiltin.classList.add('border-stone-200', 'bg-white');
+        }
+        if (customApiPanel) customApiPanel.classList.remove('hidden');
+        if (regCustomApiKey) regCustomApiKey.focus();
+      } else {
+        if (cardAiBuiltin) {
+          cardAiBuiltin.classList.add('active-card', 'border-2', 'border-amber-800', 'bg-amber-50/50');
+          cardAiBuiltin.classList.remove('border-stone-200', 'bg-white');
+        }
+        if (cardAiCustom) {
+          cardAiCustom.classList.remove('active-card', 'border-2', 'border-amber-800', 'bg-amber-50/50');
+          cardAiCustom.classList.add('border-stone-200', 'bg-white');
+        }
+        if (customApiPanel) customApiPanel.classList.add('hidden');
+      }
+    };
+
+    document.querySelectorAll('input[name="reg-ai-mode"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        updateAiChoiceVisuals(e.target.value);
+      });
+    });
+
+    if (regApiProvider && regCustomApiKey) {
+      regApiProvider.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'openai') regCustomApiKey.placeholder = 'e.g. sk-proj-...';
+        else if (val === 'grok') regCustomApiKey.placeholder = 'e.g. xai-...';
+        else if (val === 'gemini') regCustomApiKey.placeholder = 'e.g. AIzaSy...';
+        else if (val === 'claude') regCustomApiKey.placeholder = 'e.g. sk-ant-...';
+        else regCustomApiKey.placeholder = 'e.g. sk-...';
+      });
+    }
+
+    const btnToggleRegKeyVis = document.getElementById('btn-toggle-reg-key-vis');
+    if (btnToggleRegKeyVis && regCustomApiKey) {
+      btnToggleRegKeyVis.addEventListener('click', () => {
+        const isPass = regCustomApiKey.type === 'password';
+        regCustomApiKey.type = isPass ? 'text' : 'password';
+      });
+    }
+
+    const finalizeRegistrationAndGoDashboard = async (isCustom) => {
+      try {
+        if (isCustom) {
+          const key = regCustomApiKey ? regCustomApiKey.value.trim() : '';
+          const provider = regApiProvider ? regApiProvider.value : 'openai';
+          if (!key) {
+            showToast('Please enter your API key or continue with Built-in AI.', 'error');
+            if (regCustomApiKey) regCustomApiKey.focus();
+            return;
+          }
+          await api.post('/user/settings', {
+            custom_api_key: key,
+            api_provider: provider
+          });
+          showToast('API key configured! Entering your dashboard...', 'success');
+        } else {
+          await api.post('/user/settings', {
+            custom_api_key: '',
+            api_provider: 'built_in'
+          });
+          showToast('Built-in AI configured! Welcome to Excuva.', 'success');
+        }
+
+        // Reset wizard views
+        if (aiChoicePanel) aiChoicePanel.classList.add('hidden');
+        if (registerForm) registerForm.classList.remove('hidden');
+        const oauthDivider = document.getElementById('reg-oauth-divider');
+        const oauthWrapper = document.getElementById('reg-oauth-wrapper');
+        const loginPrompt = document.getElementById('reg-login-prompt');
+        if (oauthDivider) oauthDivider.classList.remove('hidden');
+        if (oauthWrapper) oauthWrapper.classList.remove('hidden');
+        if (loginPrompt) loginPrompt.classList.remove('hidden');
+        pendingRegData = null;
+
+        this.navigate('dashboard');
+      } catch (err) {
+        showToast(err.message || 'Error saving AI preferences', 'error');
+        this.navigate('dashboard');
+      }
+    };
+
+    const btnSubmitAiChoice = document.getElementById('btn-submit-ai-choice');
+    if (btnSubmitAiChoice) {
+      btnSubmitAiChoice.addEventListener('click', () => {
+        const activeRadio = document.querySelector('input[name="reg-ai-mode"]:checked');
+        const isCustom = activeRadio && activeRadio.value === 'custom';
+        finalizeRegistrationAndGoDashboard(isCustom);
+      });
+    }
+
+    const btnSkipAiChoice = document.getElementById('btn-skip-ai-choice');
+    if (btnSkipAiChoice) {
+      btnSkipAiChoice.addEventListener('click', () => {
+        finalizeRegistrationAndGoDashboard(false);
       });
     }
 
@@ -410,6 +552,12 @@ class AppRouter {
       btnBackToReg.addEventListener('click', () => {
         if (registerOtpForm) registerOtpForm.classList.add('hidden');
         if (registerForm) registerForm.classList.remove('hidden');
+        const oauthDivider = document.getElementById('reg-oauth-divider');
+        const oauthWrapper = document.getElementById('reg-oauth-wrapper');
+        const loginPrompt = document.getElementById('reg-login-prompt');
+        if (oauthDivider) oauthDivider.classList.remove('hidden');
+        if (oauthWrapper) oauthWrapper.classList.remove('hidden');
+        if (loginPrompt) loginPrompt.classList.remove('hidden');
       });
     }
 
